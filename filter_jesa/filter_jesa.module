@@ -1,0 +1,27 @@
+<?php
+
+/**
+*  Implementation of hook_views_api(). 
+*/
+function filter_jesa_views_api() {
+  return array(
+	'api' => 3,
+    'path' => drupal_get_path('module', 'filter_jesa') . '/includes',
+	);
+}
+
+/** 
+ * Implements hook_permission() . 
+ */ 
+function filter_jesa_permission() {  
+  return array( 
+  	'choose any speaker' => array( 
+	    'title' => t('Choose any speaker') , 
+	    'description' => t('Allow to choose any speaker for a session (if the permission is set).'), 
+  	) , 
+  	'view all registrations' => array( 
+	    'title' => t('View all registrations') , 
+	    'description' => t('Allow to view all the registrations (not only own registrations).'), 
+  	) , 
+   ); 
+}

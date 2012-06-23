@@ -1,0 +1,14 @@
+name = Conditional filter user
+description = Limit the user list (in views) to the current user (except user with permission).
+package = Jesa
+dependencies[] = views
+core = 7.x
+files[] = filter_jesa.module
+files[] = includes/filter_jesa_handler_user.inc
+files[] = includes/filter_jesa.views.inc
+
+; Information added by drupal.org packaging script on 2011-06-02
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "jesa"
+datestamp = "1306974049"

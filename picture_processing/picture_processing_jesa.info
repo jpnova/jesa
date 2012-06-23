@@ -1,0 +1,10 @@
+name = Automatic photo processing
+description = Connect automatically the presentation image with the pictures taken during a camp.
+package = Jesa
+core = 7.x
+files[] = picture_processing_jesa.module
+
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "jesa"
+datestamp = "1306974049"

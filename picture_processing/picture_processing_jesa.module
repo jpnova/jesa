@@ -1,0 +1,586 @@
+﻿<?php
+/**
+ * Module de traitement de l'image de présentation d'un stage.
+ *
+ *  @file      picture_processing_jesa.module
+ *  @author    Jean-Paul Scandariato
+ *  @date      25/8/2011
+ */
+
+/** 
+ *
+ * @defgroup picture_processing Implémentation du module de traitement d'image
+ *  
+ *   Le module de traitement d'image va géré automatiquement l'image de présentation d'un stage.
+ *   Plus précisément, lorsque les images sont déposées dans le répertoire image du stage, elle
+ *   va créer un lien vers ces images et va modifier l'image de présentation par l'image de fin
+ *   de stage. De plus, elle créera un lien vers la page Qui est qui lorque cette dernière est
+ *   créée.
+ */
+
+
+/**
+ * Implemenation of hook_action_info().
+ * 
+ * @ingroup picture_processing
+ */
+function picture_processing_jesa_action_info() {
+  return array(
+    'picture_processing_jesa_action' => array(
+      'type' => 'system',
+      'label' => t('Process camp pictures .'),
+      'configurable' => TRUE,
+      'triggers' => array('cron'),
+    ),
+  );
+}
+
+/**
+ * Process the pictures : Drupal action.
+ * 
+ * @ingroup picture_processing
+ */
+ function picture_processing_jesa_action ($object, $context) {
+  $force_update = isset($context['force_update']) ? ($context['force_update'] ? TRUE : FALSE) : FALSE;
+  $debug = isset($context['debug']) ? $context['debug'] : '5';
+  _process_pictures($force_update, $debug);
+ }
+
+
+ /**
+ * Form for configurable Drupal action
+ * 
+ * @ingroup picture_processing
+ */
+function picture_processing_jesa_action_form($context) {
+  $form['force_update'] = array(
+    '#type'          => 'select',
+    '#options'       => array (
+      TRUE  => t('yes'),
+      FALSE => t('no'),
+    ),
+    '#title' => t('Force update'),
+    '#description' => t('Update all camp nodes (even the one already configured)?'),
+    '#default_value' => isset($context['force_update']) ? $context['force_update'] : 'FALSE',
+    '#required' => TRUE,
+  );
+  $form['debug'] = array(
+    '#type'          => 'select',
+    '#options'       => array (
+      WATCHDOG_DEBUG  => t('Debug'),
+      WATCHDOG_INFO   => t('Information'),
+      WATCHDOG_NOTICE => t('Notice'),
+    ),
+    '#title' => t('Log information.'),
+    '#description' => t('Minimal level to log (default is') . t('Notice') . ')',
+    '#default_value' => isset($context['debug']) ? $context['debug'] : '5',
+    '#required' => TRUE,
+  );
+  return $form;
+}
+
+
+function picture_processing_jesa_action_submit($form, $form_state) {
+  return array(
+    'force_update' => $form_state['values']['force_update'],
+    'debug' => $form_state['values']['debug'],
+  );
+}
+
+
+
+ function _process_pictures ($force_update, $debug) {
+/*
+	TODO: mettre à jour le répertoire public sur PROD
+	TODO: mettre à jour le répertoire des images du champ field_stage_image vers public://stages/imagepresentation sur DEV et PROD
+
+	But mettre automatiquement à jour l'image de fin de stage dès que les photos sont chargées dans le répertoire du stage
+	Pour automatiser le processus, le nom de fichier de l'image de fin de stage doit être all.jpg (tout en minuscule)
+	Plusieurs situations peuvent se produirent:
+		1 - Il n'y a pas d'image all.jpg et pas de photos de stage
+			=> on ne fait rien
+		2 - Il n'y a pas d'image all.jpg mais il y a des photos de stage
+			=> on place le lien sur l'image existante (s'il y en a une)		
+		3 - Il n'y a pas d'image de présentation du stage mais il y a all.jpg
+			=> on met l'image all.jpg et on place le lien
+		4 - Il y a déjà une image de présentation mais ce n'est pas la photo du stage et il y a all.jpg
+			=> on la remplace par all.jpg
+		5 - Il y a déjà une image et c'est la photo du stage
+			=> Si le flag forceupdate n'est pas mis, on ne fait rien
+			=> Si le flag forceupdate est mis on remplace par all.jpg et on place le lien
+			
+	Au niveau technique:
+		Les photos de stage se trouvent dans le répertoire public://stages/[Nom du stage] ou [Nom du stage] est le titre du stage
+			(par exemple: "Ete 2010") translitéré (c-à-d sans les accents)
+		L'image de présenation du stage se trouve dans le répertoire public://stages/imagepresentation
+		Si l'image de présentation du stage est la copie de all.jpg son nom de fichier dans le répertoire de présentation sera
+		public://stages/imagepresentation/[Nom du stage].jpg  (ceci pour éviter d'avoir des dizaine de fichiers commençant par all*.jpg) dans le répertoire
+    
+    @ingroup picture_processing
+*/	
+	//Constantes de travail
+	//TODO voir dans Drupal s'il n'y a pas une fonction qui transforme le stream public:// dans le chemin physique (sites/default/files)
+	//répertoire de base des photos de stages (unmanaged)
+	$stages_dir = 'stages';
+	$base_dir = 'sites/default/files/' . $stages_dir;
+	//sous-répertoire des photos grand format de stage
+	$photos_sub_dir = 'img/normal';
+	//répertoire des images de présentation (managed)
+	$presentation_dir = $stages_dir . '/imagepresentation';
+	//fichier image ࠲echercher
+	// TODO si on 鴥nd le type de fichier image, if faudra faire une recherche regexp (attention tous les serveurs ne supportent pas regexp!)
+	$searched_image = 'all.jpg';
+	//Lien vers la page qui affiche toutes les photos du stages
+	// TODO pr鶯ir un token pour 鶩ter les attaquent XSS
+	$base_link = 'node/82?jesaStageID=';
+	//flag indiquant s'il faut forcer le remplacement
+	if($debug >= WATCHDOG_NOTICE) {
+     watchdog(
+       'picture processing jesa', 
+       'Force update is @force.', 
+       array(
+         '@force' => ($force_update ? 'TRUE' : 'FALSE'),
+       ),                                                                                              
+       WATCHDOG_NOTICE
+     );
+	}	
+                                                                     
+//on recherche toutes les pages stages dans le pass頨c-୤ celles succeptibles d'avoir des photos)
+	$query = "	SELECT {field_data_field_stage_dates}.field_stage_dates_value AS datedebut,
+					{node}.nid AS nid,
+					{node}.title as title
+				FROM
+					{node}
+					LEFT JOIN {field_data_field_stage_dates} ON
+							{node}.nid = {field_data_field_stage_dates}.entity_id
+						AND ({field_data_field_stage_dates}.entity_type = :DateEntityType
+						AND {field_data_field_stage_dates}.deleted = :DateDeleted)
+				WHERE
+					({node}.status = :NodePublished)
+					AND ({node}.type IN(:NodeType))
+					AND (DATE_FORMAT(STR_TO_DATE({field_data_field_stage_dates}.field_stage_dates_value, :FormatStrToDate), :FormatDateToStr) <= DATE_FORMAT(DATE_ADD(Now(), INTERVAL 5 DAY),:FormatDateNowToStr))
+				ORDER BY datedebut DESC
+			";
+
+	$results = db_query($query,
+              array(
+                ':DateEntityType'=>'node',
+                ':DateDeleted' => '0',
+                ':NodePublished'=> '1',
+                ':NodeType'=> 'stage',
+                ':FormatStrToDate'=> '%Y-%m-%dT%T',
+                ':FormatDateToStr'=> '%Y-%m-%d',
+                ':FormatDateNowToStr' => '%Y-%m-%d',
+              )
+						);
+
+
+	foreach ($results as $record){
+		//Initialisation
+		$node_title = $record->title;
+		if (module_exists('transliteration')) {
+			$node_title = transliteration_get($node_title);
+		}
+	
+		$target_dir       = $base_dir . '/' . $node_title . '/' . $photos_sub_dir;
+		$source_uri       = '';
+		$link_photo       = '';
+    $link_who         = '';
+		$source_filename  = '';
+		$new_image        = array();
+		
+		// ETAPE 1 : Recherche d'une image dans les répertoires des stages
+		//           Si on la trouve la variable $source_uri est remplie
+		// 			 S'il y a des images dans le répertoire la variable $link_photo est remplie
+		
+		// Le répertoire existe-t'il (sinon on ne fait rien)
+		if (is_dir($target_dir)) {
+			// ok le répertoire existe, y-a-t'il des photos (comme le répertoire ne contient que des photos on regarde uniquement s'il y a des fichiers)
+			//   "@" avant opendir permet d'鶩ter l'appartion d'un message E_Warning en PHP
+			if ($handle = @opendir($target_dir)) {
+				// It鲡tion dans la liste des objects (fichiers et répertoires)
+				while (false !== ($file = readdir($handle))) {
+					// on ne veut que les fichiers, si on en trouve pas : on ne fait rien
+					// TODO voir fonction drupal is_image pour trouver un fichier de type image et pas n'importe quel fichier
+					if (is_file($target_dir . '/' . $file)) {
+						// ok il y a au moins un fichier, on peut donc pr鰡rer un lien html pour afficher toutes les photos.
+						$link_photo = $base_link . $node_title;
+						// plus besoin d'it鲥r dans la boucle
+						break 1;
+					}
+				}
+				closedir($handle);
+			} else {
+				// Si l'ouverture de répertoire ne fonctionne pas => logger une erreur
+        if ($debug >= WATCHDOG_WARNING) {
+          watchdog(
+            'picture processing jesa', 
+            'Problem when trying to open the directory @dir', 
+            array('@dir' =>  $stages_dir . '/' . $node_title ,),
+            WATCHDOG_WARNING
+          );
+        }
+			}
+			
+			//on recherche un fichier du nom de all.jpg
+			// TODO essayer de trouver une fonction case insensitive
+			// TODO chercher si on peut rechercher tous les fichiers all.* puis faire un test du type is image
+			if (is_file($target_dir . '/' . $searched_image)) {
+				// ok on prend ce fichier comme base
+				$source_filename = $searched_image;
+				$source_uri = file_build_uri($stages_dir . '/' . $node_title . '/' . $photos_sub_dir . '/' . $source_filename);
+			}
+      else {
+        if ($debug >= WATCHDOG_DEBUG) {
+          //pas un fichier => on ne fait rien
+          watchdog(
+            'picture processing jesa',
+            '@dir does not contains any @target images.',
+            array(
+              '@dir'    =>  $stages_dir . '/' . $node_title,
+              '@target' =>  $searched_image,
+            ),
+            WATCHDOG_DEBUG
+          );	
+        }
+			}
+		} else {
+      if ($debug >= WATCHDOG_INFO) {
+        //le répertoire pour les photos du stage n'existe pas => on ne fait rien
+        watchdog(
+          'picture processing jesa',
+          '@dir does not exists',
+          array(
+            '@dir' =>  $stages_dir . '/' . $node_title,
+          ),
+          WATCHDOG_INFO
+        );
+      }
+		}
+	
+		// ETAPE 2 : (Uniquement si l'on a des photos dans le répertoire => si $link_photo est rempli)
+		//           Charger le node et voir s'il existe ou non une image de présentation pour le stage
+		if (!empty($link_photo)) {
+			$node = node_load($record->nid);
+			$field_image = empty($node->field_stage_photo[LANGUAGE_NONE][0]) ? '' : $node->field_stage_photo[LANGUAGE_NONE][0];
+			//y a-t'il une image d骠 pr鳥nte sur le site?
+			if (!empty($field_image)) {
+				$existing_uri = $field_image['uri'];	
+			}
+
+      //V鲩fication s'il y a un node qui est qui pour ce stage (ils sont cr驳 manuellement) et on g鮨re le lien vers
+      // la page principale
+      $who_nid = _get_who_page($node, $debug);
+      if($who_nid > 0) {
+        $link_who = 'node/' . $who_nid;
+        _set_backlinck_who($who_nid, $node, $force_update, $debug);
+      }
+			
+			// ETAPE 3 : Comparaison entre l'image existante sur la page du stage et le répertoire stage
+			//
+ 			if (empty($source_filename)) {
+				// pas d'image all.jpg trouv饠(donc nous avons uniquement un lien vers les photos du stage sans photo de stage)
+				if (!empty($existing_uri)) {
+					//il y a une image existance => activation du lien
+          //s'il n'y a pas de page qui est qui, on fait un lien direct
+          // vers toutes les photos
+          $new_image['url'] = empty($link_who) ? $link_photo : $link_who;
+          _set_new_image_partial ($new_image, $node, $link_photo, $debug);
+				}
+        else {
+          //Il n'y a pas d'image existante on met le lien uniquement sous forme texte
+          _prepare_text_link ($node, $link_photo);
+          if ($debug >= WATCHDOG_DEBUG) {
+            watchdog(
+              'picture processing jesa',
+              'Updating the text link @link_photo',
+              array(
+                '@link_photo' =>  $node->field_stage_photos[LANGUAGE_NONE][0]['value'],
+              ),
+              WATCHDOG_DEBUG
+            );
+          }
+          node_submit($node);
+          node_save($node);
+        }				
+			}
+      else {
+				//il y a une image all.jpg, y-a-t'il une image de présentation?
+				$destination_uri = file_build_uri($presentation_dir . '/' . $node_title . '.jpg');
+ 				if (empty($existing_uri) || ($existing_uri == 'public://') ) {
+					// il n'y a pas d'image de présentation
+					// transferer la photo all.jpg vers presentation en changeant le nom du fichier (node title)					
+					$new_file = _copy_file ($source_filename, $source_uri, $destination_uri);
+					//  perparer le record DB vis ࠶is de l'image.
+          //s'il n'y a pas de page qui est qui, on fait un lien direct
+          // vers toutes les photos
+          $new_image['url'] = empty($link_who) ? $link_photo : $link_who;
+					$new_image['alt']   = 'Photo du stage d\'astronomie ' . $node_title;
+					$new_image['title'] = 'Photo du stage d\'astronomie ' . $node_title;
+					$new_image['file']  = $new_file;
+					_set_new_image_full ($new_image, $node, $link_photo);
+				}
+        else {
+					//il y a une image all.jpg et une image de présentation
+					//l'image de présentation est-elle all.jpg
+					$is_PhotoStage = ($destination_uri == $existing_uri);					
+ 					if ($is_PhotoStage == TRUE) {
+						// C'est la photo du stage, on fait un overwrite?
+						if ($force_update == TRUE) {
+						  //Preparer la nouvelle photo
+						  // transferer la photo all.jpg vers nodetitle avec flag remplacer l'ancienne
+							$new_file = _copy_file ($source_filename, $source_uri, $destination_uri);
+              //s'il n'y a pas de page qui est qui, on fait un lien direct
+              // vers toutes les photos
+              $new_image['url'] = empty($link_who) ? $link_photo : $link_who;
+              $new_image['alt']   = 'Photo du stage d\'astronomie ' . $node_title;
+              $new_image['title'] = 'Photo du stage d\'astronomie ' . $node_title;
+              $new_image['file']  = $new_file;
+              _set_new_image_partial ($new_image, $node, $link_photo, $debug);
+              if ($debug >= WATCHDOG_DEBUG) {
+                watchdog(
+                  'picture processing jesa', 
+                  'Updating the picture for @title with the link @link_photo', 
+                  array(
+                    '@title'      => $node_title, 
+                    '@link_photo' =>  $new_image['url'],
+                  ),
+                  WATCHDOG_DEBUG
+                );
+              }              
+						
+						} // else { // force update n'est pas mis => on laisse la photo existante	}
+					}
+          else {
+						// ce n'est pas la photo du stage
+						// transferer la photo all.jpg vers presentation en changeant le nom (node title)
+						$new_file = _copy_file ($source_filename, $source_uri, $destination_uri);
+
+						//  perparer le record DB vis ࠶is de l'image.
+            //s'il n'y a pas de page qui est qui, on fait un lien direct
+            // vers toutes les photos
+            $new_image['url'] = empty($link_who) ? $link_photo : $link_who;
+            $new_image['alt']   = 'Photo du stage d\'astronomie ' . $node_title;
+						$new_image['title'] = 'Photo du stage d\'astronomie ' . $node_title;
+						$new_image['file']  = $new_file;
+						_set_new_image_full ($new_image, $node, $link_photo);
+					}
+				}
+			}
+		} //else {//il n'y a pas de photos de stage => on ne fait rien}
+	}
+}
+
+/**
+* Copie une image vers le répertoire imagepresentation
+*  Ce répertoire est géré par drupal (autrement dit, si une image n'est plus référencée
+*    sur le site elle sera supprimée. Donc pour éviter de perdre des images
+*    on garde l'original dans le répertoire non géré par Drupal.
+* 
+*  @ingroup picture_processing
+*/
+function _copy_file ($source_filename, $source_uri, $destination_uri) {
+	$file 			= new stdClass();
+	$file->uid 		= '1';
+	$file->FileName = $source_filename;
+	$file->uri 		= $source_uri;
+	$file->filemime = file_get_mimetype($source_uri);//this is the complete path
+	$file->status 	= '1';
+	$file->timestamp = time();
+
+	$new_file = file_copy($file, $destination_uri, FILE_EXISTS_REPLACE);
+	return $new_file;
+}
+
+/**
+*  Place (ou remplace) l'image du stage par une nouvelle image.
+* 
+* @ingroup picture_processing
+*/
+function _set_new_image_full (&$new_image, &$node, &$link_photo) {
+	if (!empty($new_image['file'])) {
+		$node->field_stage_photo[LANGUAGE_NONE][0] = array(
+  		'fid'       => $new_image['file']->fid,
+  		'alt'       => $new_image['alt'],
+  		'title'     => $new_image['title'],
+  		'target'    =>'_self',
+  		'nofollow'  => 0,
+  		'url'       => $new_image['url'],
+  		'uid'       => '1',
+  		'FileName'  => $new_image['file']->FileName,
+  		'uri'       => $new_image['file']->uri,
+  		'filemime'  => $new_image['file']->filemime,
+  		'filesize'  => $new_image['file']->filesize,
+  		'status'    => '1',
+		);
+    _prepare_text_link ($node, $link_photo);
+    node_submit($node);
+    node_save($node);
+	}
+}
+
+/**
+*  Modifie les paramètres de l'image présente.
+* 
+* @ingroup picture_processing
+*/
+function _set_new_image_partial (&$new_image, &$node, &$link_photo, $debug) {
+  $is_attribute_changed = FALSE;
+	//mise ࠪour partielle
+	if (!empty($node->field_stage_photo[LANGUAGE_NONE][0])) {
+		$is_attribute_changed = FALSE;
+		if (!empty($new_image['url'])) {
+			$node->field_stage_photo[LANGUAGE_NONE][0]['url'] = $new_image['url'];
+			$is_attribute_changed = TRUE;
+      if ($debug >= WATCHDOG_INFO) {
+        watchdog(
+          'picture processing jesa', 
+          'Link to the pictures placed on @node_title', 
+          array('@node_title' =>  $node->title),  
+          WATCHDOG_INFO
+        );
+      }
+		}
+	}
+  $is_attribute_changed = $is_attribute_changed | _prepare_text_link ($node, $link_photo);
+
+  if ($is_attribute_changed == TRUE) {
+    node_submit($node);
+    node_save($node);
+  }
+}
+
+/**
+* Insère un lien inverse sur le node Qui est Qui
+* 
+* Insère le lien vers le node stage sur l'image dans le node Qui est qui
+* 
+* @param nid   $who_nid        node ID du node qui est qui
+* @param node  $main_node      node principal du stage
+* @param bool  $force_update   flag indiquant s'il faut faire la mise à jour même pour des liens existants.
+* @param debug $debug          niveau utiliser pour logger les messages (cf RFC 3164).
+* 
+* @ingroup picture_processing
+*/
+function _set_backlinck_who ($who_nid, $main_node, $force_update, $debug) {
+  $node_who = node_load($who_nid);
+	if (!empty($node_who->field_qui_photo[LANGUAGE_NONE][0])) {
+		if (empty($node_who->field_qui_photo[LANGUAGE_NONE][0]['url']) || $force_update) {    	
+      global $base_url;      
+			$node_who->field_qui_photo[LANGUAGE_NONE][0]['url']   = 'node/' . $main_node->nid;
+      $node_who->field_qui_photo[LANGUAGE_NONE][0]['alt']   = 'Photo des participants au stage d\'astronomie ' . $node_who->title;
+			$node_who->field_qui_photo[LANGUAGE_NONE][0]['title'] = 'Photo des participants au stage d\'astronomie ' . $node_who->title;
+      node_submit($node_who);
+      node_save($node_who);
+      if ($debug >= WATCHDOG_INFO) {
+        watchdog(
+          'picture processing jesa', 
+          'Back link to the event page (node @main_node) placed on @node_title', 
+          array(
+            '@node_title' => $node_who->title,
+            '@main_node'  => $main_node->nid,
+          ),
+          WATCHDOG_INFO
+        );
+      }
+		}
+  }
+}
+
+
+/**
+* Prépare le champs texte "Toutes les photos"
+* 
+* Ce champs est un lien qui renvoie vers toutes les photos du stage.
+* Attention ne pas confondre le champ "field_stage_photos" qui contient le texte (un url)
+*vers toutes les photos (positioné à droite de l'impage des photos) et le champ "field_stage_photo"
+* qui est un champ image et contient l'image de présentation.
+* 
+* @param integer $node nodeid à mettre à jour
+* @param string $link_photo lien relatif vers le node d'affichage des images d'un stage.
+* 
+* @ingroup picture_processing
+* 
+*/
+function _prepare_text_link (&$node, &$link_photo) {
+  if (!empty($link_photo)) {
+    global $base_url;
+    $node->field_stage_photos[LANGUAGE_NONE][0]['value']  = '<a href="' . $base_url . '/' . $link_photo . '">Toutes les photos</a>';
+    $node->field_stage_photos[LANGUAGE_NONE][0]['format'] = 'full_html';
+    $node->field_stage_photos[LANGUAGE_NONE][0]['safe_value']  = '<p><a href="' . $base_url . '/' . $link_photo . '">Toutes les photos</a></p>';
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+
+
+/**
+*
+* Cherche s'il y a une page Qui est qui
+* 
+* S'il y a plusieurs pages qui est qui pour ce stage (le titre de la page
+* qui est qui est identique à celui de la page du stage), on renverra la
+* premier trouvé 
+* 
+* @param node    $node  
+* @param integer $debug niveau utiliser pour logger les messages (cf RFC 3164).
+* 
+* @return : le nid de la page Qui est qui, si elle existe. 0 autrement.
+* 
+* @ingroup picture_processing
+*/
+function _get_who_page($node, $debug) {
+
+	$query = "	
+    SELECT
+			{node}.nid AS nid,
+			{node}.title as title
+		FROM
+      {node}
+    WHERE
+      ({node}.status = :NodePublished)
+      AND ({node}.type IN(:NodeType))
+      AND ({node}.title = :NodeTitle)
+		";
+
+	$results = db_query($query,
+    array(
+      ':NodePublished'  => '1',
+      ':NodeType'       => 'qui_est_qui',
+      ':NodeTitle'      => $node->title,
+    )
+  );
+  foreach ($results as $record){
+    // Il ne devrait y avoir qu'un record
+    if (isset($result)) {
+      if ($debug >= WATCHDOG_WARNING) {
+        watchdog(
+          'picture processing jesa',
+          'Found more than one qui_est_qui node for @node_title. The link is set with nid: @nid', 
+          array(
+            '@node_title' =>  $node->title,
+            '@nid' => $result,
+           ),
+           WATCHDOG_WARNING
+         );
+      }
+    } else {
+      $result = $record->nid;
+      if ($debug >= WATCHDOG_DEBUG) {
+        watchdog(
+          'picture processing jesa',
+          'Found one qui_est_qui node for @node_title. The link is set with nid: @nid', 
+          array(
+            '@node_title' =>  $node->title,
+            '@nid' => $result,
+          ),
+          WATCHDOG_DEBUG
+        );
+      }
+    }
+  }
+  return isset($result) ? $result : 0;
+}

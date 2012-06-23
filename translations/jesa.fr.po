@@ -1,0 +1,676 @@
+﻿﻿# $Id$
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  block_jesa/block_jesa.module: n/a
+#  block_jesa/block_jesa.info: n/a
+#  filter_jesa/filter_jesa.info: n/a
+#  inscription/inscription_jesa.info: n/a
+#  picture_processing/picture_processing_jesa.info: n/a
+#  filter_jesa/filter_jesa.module: n/a
+#  filter_jesa/includes/filter_jesa.views.inc: n/a
+#  filter_jesa/includes/filter_jesa_handler_user.inc: n/a
+#  inscription/inscription_jesa.inc: n/a
+#  inscription/inscription_jesa_list.inc: n/a
+#  inscription/inscription_jesa.module: n/a
+#  picture_processing/picture_processing_jesa.module: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2012-06-22 08:59+0200\n"
+"PO-Revision-Date: 2012-06-22 08:59+0200\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: French <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: block_jesa/block_jesa.module:26
+msgid "Jesa: Informations"
+msgstr "Jesa: Renseignements"
+
+#: block_jesa/block_jesa.module:51
+msgid "Link FAQ"
+msgstr "Lien vers la page FAQ"
+
+#: block_jesa/block_jesa.module:53
+msgid "Link (relative to the content nodes) to the faq. Normaly you shouldn't change it."
+msgstr ""
+"Lien (relatif à partir des nodes de stage) vers la page faq. Vous ne "
+"devriez normalement pas pas le modifier."
+
+#: block_jesa/block_jesa.module:58
+msgid "Link contact page"
+msgstr "Lien vers la page de contact"
+
+#: block_jesa/block_jesa.module:60
+msgid "Link (relative to the content nodes) to the contact page. Normaly you shouldn't change it."
+msgstr ""
+"Lien (relatif à partir des nodes de stage) vers la page de contact. "
+"Vous ne devriez normalement pas pas le modifier."
+
+#: block_jesa/block_jesa.module:65
+msgid "Adult event"
+msgstr "Stage adulte"
+
+#: block_jesa/block_jesa.module:67;74
+msgid "Contact name and phone for the event"
+msgstr "Nom et téléphone de la personne de contact pour le stage."
+
+#: block_jesa/block_jesa.module:72
+msgid "Youth event"
+msgstr "Stage jeunes"
+
+#: block_jesa/block_jesa.module:113 block_jesa/block_jesa.info:0
+msgid "Informations"
+msgstr "Renseignements"
+
+#: block_jesa/block_jesa.module:172
+msgid "Consult our <a href=\"@FaqLink\">FAQ</a> or send yours questions by <a href=\"@ContactLink\">clicking here</a>."
+msgstr ""
+"Consultez notre <a href=\"@FaqLink\">FAQ</a> ou envoyer vos questions "
+"en <a href=\"@ContactLink\">cliquant ici</a>."
+
+#: block_jesa/block_jesa.module:178
+msgid "You can contact the event responsible @Contact"
+msgstr ""
+"Vous pouvez également prendre directement contact avec le responsable "
+"du stage: @Contact"
+
+#: block_jesa/block_jesa.module:179
+msgid "To make a subscription use the following <a href=\"@SubscriptionLink\">link</a>."
+msgstr "Pour vous inscrire utilisez <a href=\"@SubscriptionLink\">ce lien</a>."
+
+#: block_jesa/block_jesa.info:0
+msgid "Display the links to informations, subscritpions and contact for the future events."
+msgstr ""
+"Affiche les liens vers les informations, les inscriptions et les "
+"contacts pour les stages futurs."
+
+#: block_jesa/block_jesa.info:0 filter_jesa/filter_jesa.info:0 inscription/inscription_jesa.info:0 picture_processing/picture_processing_jesa.info:0
+msgid "Jesa"
+msgstr "Jesa"
+
+#: filter_jesa/filter_jesa.module:19
+msgid "Choose any speaker"
+msgstr "Peut choisir tous les orateurs."
+
+#: filter_jesa/filter_jesa.module:20
+msgid "Allow to choose any speaker for a session (if the permission is set)."
+msgstr ""
+"Permet de choisir tous les orateur pour un exposé (si la permission "
+"est donnée)"
+
+#: filter_jesa/filter_jesa.module:23
+msgid "View all registrations"
+msgstr "Voir toutes les inscriptions."
+
+#: filter_jesa/filter_jesa.module:24
+msgid "Allow to view all the registrations (not only own registrations)."
+msgstr ""
+"Est autoris&eacute; &agrave; voir toutes les inscriptions (pas "
+"seulement les siennes)."
+
+#: filter_jesa/filter_jesa.info:0
+msgid "Conditional filter user"
+msgstr "Filtre conditional utilisateur"
+
+#: filter_jesa/filter_jesa.info:0
+msgid "Limit the user list (in views) to the current user (except user with permission)."
+msgstr ""
+"Limite la liste des utilisateurs (dans views) &agrave; l'utilisateur "
+"connecte (sauf pour les utilisateurs avec permission)."
+
+#: filter_jesa/includes/filter_jesa.views.inc:21
+msgid "User"
+msgstr "Utilisateur"
+
+#: filter_jesa/includes/filter_jesa.views.inc:22
+msgid "Jesa filter"
+msgstr "Filtre Jesa"
+
+#: filter_jesa/includes/filter_jesa.views.inc:23
+msgid "Filter the view to the currently logged in user except if having one of the specified permissions."
+msgstr ""
+"Filtre la vue uniquement pour l&rsquo;utilisateur connect&eacute; sauf "
+"si ce dernier poss&egrave;de une des permissions "
+"sp&eacute;cifi&eacute;es."
+
+#: filter_jesa/includes/filter_jesa_handler_user.inc:16
+msgid "Is the logged in user (bypassed by some permissions)"
+msgstr ""
+"Est l&rsquo;utilisateur connect&eacute; (sauf pour certaines "
+"permissions)"
+
+#: filter_jesa/includes/filter_jesa_handler_user.inc:27
+msgid "Permissions to bypass filter."
+msgstr ""
+"Permissions n&eacute;cessaires pour ne pas &ecirc;tre limit&eacute; "
+"&agrave; l&rsquo;utilisateur connect&eacute;"
+
+#: filter_jesa/includes/filter_jesa_handler_user.inc:49
+msgid "Is one of"
+msgstr "Fait partie de"
+
+#: filter_jesa/includes/filter_jesa_handler_user.inc:50
+msgid "in"
+msgstr "dans"
+
+#: filter_jesa/includes/filter_jesa_handler_user.inc:51
+msgid "="
+msgstr "="
+
+#: inscription/inscription_jesa.inc:59
+msgid "This page allow you to create the link between a parent and one of more child and, if necessary, create the users.\r\n                  This will allow the parent to register his child for the future events."
+msgstr ""
+"Cette page vous permet de créer un lien entre un parent (ou tuteur) "
+"et un ou plusieurs enfants. Si les personnes n'esistent pas, le "
+"système les créera automatiquement.\n"
+"Cela permetra au parent d'inscrire sont enfant aux futurs stages."
+
+#: inscription/inscription_jesa.inc:65;243;246;256;262;267
+msgid "Parent"
+msgstr "Parent"
+
+#: inscription/inscription_jesa.inc:71;76
+msgid "Existing parent"
+msgstr "Parent existant"
+
+#: inscription/inscription_jesa.inc:82
+msgid "New Parent"
+msgstr "Nouveau parent"
+
+#: inscription/inscription_jesa.inc:109;302;319;325;339;441;448;465
+msgid "Participant"
+msgstr "Participant"
+
+#: inscription/inscription_jesa.inc:115;120;501;506
+msgid "Existing member"
+msgstr "Stagiaire existant"
+
+#: inscription/inscription_jesa.inc:126;512
+msgid "New member"
+msgstr "Nouveau stagiaire"
+
+#: inscription/inscription_jesa.inc:147
+msgid "Kinship"
+msgstr "Lien de parenté"
+
+#: inscription/inscription_jesa.inc:154;544 inscription/inscription_jesa_list.inc:337
+msgid "Submit"
+msgstr "Envoyer"
+
+#: inscription/inscription_jesa.inc:160
+msgid "Add a new name"
+msgstr "Ajouter un nouveau nom"
+
+#: inscription/inscription_jesa.inc:169
+msgid "Delete the last name"
+msgstr "Supprimer le dernier nom"
+
+#: inscription/inscription_jesa.inc:243;319;587
+msgid "the name is mandatory for a new member."
+msgstr "le nom est obligatoir pour un nouvel utilisateur."
+
+#: inscription/inscription_jesa.inc:246;325
+msgid "the firstname is mandatory for a new member."
+msgstr "le prénom est obligatoir pour un nouvel utilisateur."
+
+#: inscription/inscription_jesa.inc:256;602
+msgid "the address is mandatory for a new member."
+msgstr "l'adresse est obligatoir pour un nouvel utilisateur."
+
+#: inscription/inscription_jesa.inc:262;339;607
+msgid "the gender is mandatory for a new member."
+msgstr "le sexe est obligatoire pour un nouvel utilisateur."
+
+#: inscription/inscription_jesa.inc:267;345;612
+msgid "the email address or the phone number is mandatory for a new member."
+msgstr ""
+"l'adresse mail ou le téléphone doit être rempli pour un nouvel "
+"utilisateur."
+
+#: inscription/inscription_jesa.inc:302;573
+msgid "the birthdate is mandatory for a new member."
+msgstr "la date de naissance est obligatoir pour un nouvel utilisateur."
+
+#: inscription/inscription_jesa.inc:405
+msgid "@firstname @name, user successfuly created."
+msgstr "@firstname @name, utilisateur cr&eacute;&eacute; avec succ&egrave;s."
+
+#: inscription/inscription_jesa.inc:411;473;655
+msgid "Error during the processing of @prenom @nom (!msg)."
+msgstr ""
+"Le syst&egrave;me a rencontr&eacute; un probl&egrave;me lors du "
+"traitement de @prenom @nom (!msg)."
+
+#: inscription/inscription_jesa.inc:442
+msgid "@firstname @name, link successfuly activated."
+msgstr "@firstname @name, lien activ&eacute; avec succ&egrave;s."
+
+#: inscription/inscription_jesa.inc:449
+msgid "@firstname @name, the user and the link already exists."
+msgstr ""
+"@firstname @name, l&rsquo;utilisateur et le lien existent "
+"d&eacute;j&agrave;."
+
+#: inscription/inscription_jesa.inc:466
+msgid "user and link successfully created."
+msgstr "L'utilisateur et le lien ont été créé avec succès."
+
+#: inscription/inscription_jesa.inc:491
+msgid "Allow to register a new participant. if the participant does't exist he(she) will be created. For a new member you must provide the name, firstname, the gender and a contact method (mail or phone)."
+msgstr ""
+"Permet d'introduire un nouveau stagiairr. Si le participant n'existe "
+"pas il(elle) sera automatiquement créé. Pour un nouveau stagiaire, "
+"vous devez introduire le nom, le prénom, le sexe et un moyen de "
+"contact (courriel ou numéro de téléphone)."
+
+#: inscription/inscription_jesa.inc:495
+msgid "Member"
+msgstr "Stagiaire"
+
+#: inscription/inscription_jesa.inc:529;536 inscription/inscription_jesa_list.inc:329
+msgid "Events"
+msgstr "Stages"
+
+#: inscription/inscription_jesa.inc:590
+msgid "the fisrtname is mandatory for a new member."
+msgstr "Le prénom est obligatoire pour un nouvel utilisateur."
+
+#: inscription/inscription_jesa.inc:624
+msgid "Please select an event."
+msgstr "Veuillez s&eacute;lectionner un stage."
+
+#: inscription/inscription_jesa.inc:637
+msgid "The member already exists it will not be created."
+msgstr ""
+"Le stagiaire existe d&eacute;j&agrave;, il ne sera pas "
+"cr&eacute;&eacute;."
+
+#: inscription/inscription_jesa.inc:685
+msgid "The status of the registration form has been modified."
+msgstr "Le statut du formulaire d'inscription est changé"
+
+#: inscription/inscription_jesa.inc:711
+msgid "The status of the payment has been modified."
+msgstr "Le statut du paiement est changé."
+
+#: inscription/inscription_jesa.inc:787
+msgid "The email address is not valid."
+msgstr "L&rsquo;adresse mail n&rsquo;est pas valide."
+
+#: inscription/inscription_jesa.inc:798
+msgid "The user found using the name (@nom) is different from the one found using the email address (@email)."
+msgstr ""
+"Le nom d&rsquo;utilisateur trouv&eacute; par l&rsquo;adresse mail "
+"(@email) ne correspond pas avec celui trouvé parle nom (@nom)."
+
+#: inscription/inscription_jesa.inc:817
+msgid "The user found using the name introduced (@user_name) is different from the one found using the email address (@email)."
+msgstr ""
+"Le nom d&rsquo;utilisateur trouv&eacute; par l&rsquo;adresse mail "
+"(@email) ne correspond pas avec le nom (@user_name) introduit."
+
+#: inscription/inscription_jesa.inc:957;1256;1455 inscription/inscription_jesa_list.inc:208;273 inscription/inscription_jesa.module:594;658
+msgid "Error during database access."
+msgstr "Erreur de base de donnée"
+
+#: inscription/inscription_jesa.inc:1057
+msgid "The email address @email is already used."
+msgstr "Le courriel @email est d&eacute;j&agrave; utilis&eacute;"
+
+#: inscription/inscription_jesa.inc:1068
+msgid "The welcome mail for @prenom @nom cannot be sent, please send the mail manually."
+msgstr ""
+"Le mail de bienvenue n&rsquo;a pas pu être envoyé pour @prenom @nom, "
+"veuillez envoyer un mail manuellement."
+
+#: inscription/inscription_jesa.inc:1280
+msgid "Firstname"
+msgstr "Prénom"
+
+#: inscription/inscription_jesa.inc:1289 inscription/inscription_jesa_list.inc:56
+msgid "Name"
+msgstr "Nom"
+
+#: inscription/inscription_jesa.inc:1299
+msgid "Gender"
+msgstr "Sexe"
+
+#: inscription/inscription_jesa.inc:1306
+msgid "email adress"
+msgstr "Adresse mail"
+
+#: inscription/inscription_jesa.inc:1315
+msgid "phone"
+msgstr "Num&eacute;ro de t&eacute;l&eacute;phone."
+
+#: inscription/inscription_jesa.inc:1324
+msgid "Adress (line 1)"
+msgstr "Adresse (ligne 2)"
+
+#: inscription/inscription_jesa.inc:1333
+msgid "Adress (line 2)"
+msgstr "Adresse (ligne 1)"
+
+#: inscription/inscription_jesa.inc:1342
+msgid "Birthdate"
+msgstr "Date de naissance"
+
+#: inscription/inscription_jesa.inc:1343
+msgid "Birthdate format \"jj-mm-aaaa\""
+msgstr "Format de la date de naissance \"jj-mm-aaaa\""
+
+#: inscription/inscription_jesa.inc:1369
+msgid "The birthdate is not correct."
+msgstr "La date de naissance est erronée."
+
+#: inscription/inscription_jesa.inc:1375
+msgid "The members'age (!age) doesn't allow him to register to the event."
+msgstr "L'age du stagiaire (!age) ne lui permet pas de parciticiper au stage."
+
+#: inscription/inscription_jesa_list.inc:57
+msgid "Next event registration"
+msgstr "Prochain stage"
+
+#: inscription/inscription_jesa_list.inc:58
+msgid "Registration status"
+msgstr "Statut de l&rsquo;inscription"
+
+#: inscription/inscription_jesa_list.inc:59
+msgid "Actions"
+msgstr "Actions"
+
+#: inscription/inscription_jesa_list.inc:74
+msgid "none"
+msgstr "aucun(e)"
+
+#: inscription/inscription_jesa_list.inc:106
+msgid "Register"
+msgstr "Inscrire"
+
+#: inscription/inscription_jesa_list.inc:116
+msgid "Le syst&egrave;me a rencontr&eacute; un probl&egrave;me lors de la\r\n          confection de la liste des participants (!msg).</br>\r\n          Veuillez prendre contact avec le @responsable pour l&rsquo;inscription."
+msgstr ""
+
+#: inscription/inscription_jesa_list.inc:119 inscription/inscription_jesa.module:454
+msgid "event manager"
+msgstr "responsable du stage"
+
+#: inscription/inscription_jesa_list.inc:132
+msgid "The list is empty."
+msgstr "Il n'y a pas d'éléments dans la liste."
+
+#: inscription/inscription_jesa_list.inc:132
+msgid "Add a member."
+msgstr "Ajouter un stagiaire."
+
+#: inscription/inscription_jesa_list.inc:313
+msgid "Sorry, there is no event available."
+msgstr "D&eacute;sol&eacute;, il n&rsquo;y a aucun stage disponible."
+
+#: inscription/inscription_jesa_list.inc:324
+msgid "Select the event(s)."
+msgstr "Veuillez sélectionner le(s) stage(s)."
+
+#: inscription/inscription_jesa_list.inc:341
+msgid "Cancel"
+msgstr "Annuler"
+
+#: inscription/inscription_jesa_list.inc:364
+msgid "Please select at least one event."
+msgstr "Veuillez s&eacute;lectionner au moins un stage."
+
+#: inscription/inscription_jesa.module:143
+msgid "Management of the members registration"
+msgstr "Gestion des inscriptions des stagiaires."
+
+#: inscription/inscription_jesa.module:170
+msgid "administer children subscription"
+msgstr ""
+"Administration des inscriptions aux stages pour jeunes pour le "
+"gestionaire de stage."
+
+#: inscription/inscription_jesa.module:171
+msgid "Allow to administer the registrations for the event manager."
+msgstr ""
+"Permet d&rsquo;administrer les inscriptions par le gestionnaire de "
+"stage (incrire un stagiaire, cr&eacute;er un lien parent-enfant)."
+
+#: inscription/inscription_jesa.module:174
+msgid "Manage children subscription"
+msgstr "Inscriptions aux stages pour jeunes directement via le site."
+
+#: inscription/inscription_jesa.module:175
+msgid "Allow to manage the children's registrations."
+msgstr ""
+"Permet de g&eacute;rer les inscriptions des stagiaires "
+"&rsquo;jeunes&rsquo; par leur(s) parent(s)."
+
+#: inscription/inscription_jesa.module:260
+msgid "A different link exists between the parent en the child (@stagiaire_prenom @stagiaire_nom)."
+msgstr ""
+"Un lien différent existe entre le parent et l'enfant "
+"(@stagiaire_prenom @stagiaire_nom)."
+
+#: inscription/inscription_jesa.module:286
+msgid "The link [-en] for @stagiaire_prenom @stagiaire_nom [-stagiaire_uid] already exists with [-en_parent_uid].\\nCheck if this link is valid."
+msgstr ""
+"Le lien [-en] pour @stagiaire_prenom @stagiaire_nom [-stagiaire_uid] "
+"existe déjà avec [-en_parent_uid].\\n"
+"Veuillez vérifier si le lien est correct."
+
+#: inscription/inscription_jesa.module:387
+msgid "Study level"
+msgstr "Année d'étude"
+
+#: inscription/inscription_jesa.module:388
+msgid "This is the study level of the participant or the one he/she just finish (in case of summer events)"
+msgstr ""
+"C&rsquo;est l'ann&eacute;e dans laquelle le stagiaire se trouve ou "
+"qu'il vient de terminer (dans le cas des stages d'&eacute;t&eacute;)"
+
+#: inscription/inscription_jesa.module:397
+msgid "Will come with the train"
+msgstr "Viendra en train"
+
+#: inscription/inscription_jesa.module:398
+msgid "Si le stagiaire vient par le train, l&acute;organisateur viendra le chercher &agrave; la gare de Huy."
+msgstr ""
+
+#: inscription/inscription_jesa.module:429
+msgid "@prenom @nom is registred on the event @stage."
+msgstr "@prenom @nom est inscrit au stage @stage."
+
+#: inscription/inscription_jesa.module:446
+msgid "Le syst&egrave;me a rencontr&eacute; un probl&egrave;me lors de\r\n        l&rsquo;inscription de @prenom @nom au stage @stage (!msg).</br> Veuillez prendre contact avec \r\n        avec le @responsable pour l&rsquo;inscription."
+msgstr ""
+
+#: inscription/inscription_jesa.module:486
+msgid "@prenom @nom is already registred on the event @stage."
+msgstr "@prenom @nom est d&eacute;j&agrave; inscrit au stage @stage."
+
+#: inscription/inscription_jesa.module:359
+msgid "jesa inscription"
+msgstr "inscription jesa"
+
+#: inscription/inscription_jesa.module:359
+msgid "More than one link found between parent @parent and child @stagiaire in table field_data_field_lien_type. There must be only one. Please delete the wrong links."
+msgstr ""
+"Plus d'un lien entre le parent @parent et le stagiaire @stagiaire ont "
+"été trouvés dans la table field_data_field_lien_type. Il ne peut y "
+"en avoir qu'un. Veuillez supprimer les liens erronés. "
+
+#: inscription/inscription_jesa.module:45;50
+msgid "Manage registrations"
+msgstr "Gestion des inscriptions"
+
+#: inscription/inscription_jesa.module:55
+msgid "Add registration"
+msgstr "Ajoute une inscription"
+
+#: inscription/inscription_jesa.module:60
+msgid "Add a new registration and, if needed, a new user."
+msgstr ""
+"Ajout d&rsquo;une inscription et, si n&eacute;cessaire, d&rsquo;un "
+"nouveau stagiaire."
+
+#: inscription/inscription_jesa.module:66
+msgid "Stagiaire autocomplete"
+msgstr "Autocomplétion des stagiaires."
+
+#: inscription/inscription_jesa.module:70
+msgid "Autocomplete to get child list"
+msgstr "utocomplétion de la liste des enfants."
+
+#: inscription/inscription_jesa.module:76
+msgid "Parent autocomplete"
+msgstr "Autocomplétion des parents"
+
+#: inscription/inscription_jesa.module:80
+msgid "Autocomplete to get parent list"
+msgstr "Autocomplétion de la liste des parents."
+
+#: inscription/inscription_jesa.module:85
+msgid "Link parent child"
+msgstr "Lien parent enfant"
+
+#: inscription/inscription_jesa.module:90
+msgid "Add a new link between parent and child and, if needed, create the users"
+msgstr ""
+"Ajout d&rsquo;un nouveau lien entre le parent et le stagiaire et, si "
+"n&eacute;cessaire, cr&eacute;e les utilisateurs."
+
+#: inscription/inscription_jesa.module:95
+msgid "form"
+msgstr "formulaire"
+
+#: inscription/inscription_jesa.module:104
+msgid "payment"
+msgstr "paiement"
+
+#: inscription/inscription_jesa.module:116
+msgid "Your registrations"
+msgstr "Vos inscriptions"
+
+#: inscription/inscription_jesa.module:120
+msgid "Manage your registrations."
+msgstr "Gestion de vos inscriptions."
+
+#: inscription/inscription_jesa.info:0
+msgid "Registration"
+msgstr "Inscription"
+
+#: inscription/inscription_jesa.info:0
+msgid "Events registration."
+msgstr ""
+"Gestion des inscriptions aux stages pour jeunes par le gestionnaire de "
+"stage ou par les parents."
+
+#: picture_processing/picture_processing_jesa.module:31
+msgid "Process camp pictures ."
+msgstr "Traitement des images des stages."
+
+#: picture_processing/picture_processing_jesa.module:59
+msgid "yes"
+msgstr "oui"
+
+#: picture_processing/picture_processing_jesa.module:60
+msgid "no"
+msgstr "non"
+
+#: picture_processing/picture_processing_jesa.module:62
+msgid "Force update"
+msgstr "Forcer la miste à jour"
+
+#: picture_processing/picture_processing_jesa.module:63
+msgid "Update all camp nodes (even the one already configured)?"
+msgstr ""
+"Mettre à jour toutes les images du stages (même celles déjà "
+"configurées)?"
+
+#: picture_processing/picture_processing_jesa.module:70
+msgid "Debug"
+msgstr "Debug"
+
+#: picture_processing/picture_processing_jesa.module:71
+msgid "Information"
+msgstr "Informations"
+
+#: picture_processing/picture_processing_jesa.module:72;75
+msgid "Notice"
+msgstr ""
+
+#: picture_processing/picture_processing_jesa.module:74
+msgid "Log information."
+msgstr ""
+
+#: picture_processing/picture_processing_jesa.module:75
+msgid "Minimal level to log (default is"
+msgstr "Niveau minimum à enregistrer (la valeur par défaut est"
+
+#: picture_processing/picture_processing_jesa.module:138;216;236;250;294;341;436;476;560;573
+msgid "picture processing jesa"
+msgstr "Jeas traitement des images"
+
+#: picture_processing/picture_processing_jesa.module:138
+msgid "Force update is @force."
+msgstr "Mise à jour forcée est @force."
+
+#: picture_processing/picture_processing_jesa.module:216
+msgid "Problem when trying to open the directory @dir"
+msgstr "Problème lors de l'ouverture du répertoire @dir"
+
+#: picture_processing/picture_processing_jesa.module:236
+msgid "@dir does not contains any @target images."
+msgstr "@dir ne contient aucune images @target."
+
+#: picture_processing/picture_processing_jesa.module:250
+msgid "@dir does not exists"
+msgstr "@dir n'existe pas"
+
+#: picture_processing/picture_processing_jesa.module:294
+msgid "Updating the text link @link_photo"
+msgstr "Mise à jour du text du lien @link_photo"
+
+#: picture_processing/picture_processing_jesa.module:341
+msgid "Updating the picture for @title with the link @link_photo"
+msgstr "Mise à jour de l'image pour @title avec le lien @link_photo"
+
+#: picture_processing/picture_processing_jesa.module:436
+msgid "Link to the pictures placed on @node_title"
+msgstr "Lien vers les photographies placé sur @node_title"
+
+#: picture_processing/picture_processing_jesa.module:476
+msgid "Back link to the event page (node @main_node) placed on @node_title"
+msgstr ""
+"Le lien vers la page du stage (node @main_node) est placée sur "
+"énode_title"
+
+#: picture_processing/picture_processing_jesa.module:560
+msgid "Found more than one qui_est_qui node for @node_title. The link is set with nid: @nid"
+msgstr ""
+"Plus d'un node de type &rsquoqui est qui&rsquo pour la page "
+"'@node_title'. Le lien est fait avec le nid: @nid."
+
+#: picture_processing/picture_processing_jesa.module:573
+msgid "Found one qui_est_qui node for @node_title. The link is set with nid: @nid"
+msgstr ""
+"Une page qui est qui trouvée pour la page '@node_title'. Le lien est "
+"fait avec le nid: @nid."
+
+#: picture_processing/picture_processing_jesa.info:0
+msgid "Automatic photo processing"
+msgstr "Traitemetn autoatique des photos."
+
+#: picture_processing/picture_processing_jesa.info:0
+msgid "Connect automatically the presentation image with the pictures taken during a camp."
+msgstr ""
+"Place automatiquement l'image de présenatation du stage avec les "
+"images prises lors des stages."
+

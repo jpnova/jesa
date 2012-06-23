@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the block_jesa module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function block_jesa_uninstall() {
+  variable_del('block_jesa_lien_faq');
+  variable_del('block_jesa_lien_contact');  
+  variable_del('block_jesa_contact_adulte');
+  variable_del('block_jesa_contact_jeune');  
+}

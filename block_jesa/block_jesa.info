@@ -1,0 +1,13 @@
+name = Informations
+description = Display the links to informations, subscritpions and contact for the future events.
+package = Jesa
+core = 7.x
+dependencies[] = block
+files[] = block_jesa.module
+
+; Information added by drupal.org packaging script on 2011-06-02
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "jesa"
+datestamp = "1306974049"
+

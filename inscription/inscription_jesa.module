@@ -1,0 +1,664 @@
+﻿<?php
+
+/**
+ * Module de gestion des inscriptions des stagiaires par le gestionnaire de stage ou par un parent.
+ *
+ *  @file      inscription_jesa.module
+ *  @author    Jean-Paul Scandariato
+ *  @date      25/10/2011
+ */
+
+/** 
+ * @defgroup Helper Fonctions d'aide
+ *
+ *  Ce groupe contient toutes les fonctions d'aide du module inscription_jesa
+ *
+ * @defgroup Inscription Implémentation du module inscription Jesa
+ *  
+ *   Le module d'inscription permet la gestion complète de l'inscription d'un
+ * stagiaire par un parent.
+ */
+  
+/**
+ * Implemente hook_menu() afin de créer les URLs (les entrées de menus) pour les
+ * diférentes pages (listes et formulaire).
+ *
+ * Deux menus sont définis:
+ *   - Vos inscriptions : Donne la liste des enfants liés à l'utilisateur, le statut
+ *  de la prochaine inscription et la possibilité d'inscrire les enfants aux
+ *  prochains stages.@n
+ *  Accessible par l'utilisateurs avec le droit "manage children subscription" 
+ * (à savoir les utilisateurs avec le rôle Parent).
+ *   - Ajout d'une inscription : permet d'ajouter une inscription d'un stagiaire 
+ *     existant ou non
+ *   - Lien parent enfant : Crée le lien parent - enfant ainsi que les utilisateurs
+ *   (avec le rôle parent ou enfant selon le cas) si ces derniers n'existent pas.
+ *   
+ *  Accessible par l'utilisateurs avec le droit "administer children subscription" 
+ * (à savoir les utilisateurs avec le rôle Gestionaire de stage).
+ * @ingroup Inscription
+ */
+function inscription_jesa_menu() {
+  $items = array();
+  //menu pour le gestionaire de stage
+  $items['inscriptions/jeunes/admin'] = array(
+    'title'            => 'Manage registrations',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('inscription_jesa_manage'),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'description'      => 'Manage registrations',
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'inscription_jesa.inc',
+  );
+  $items['inscriptions/jeunes/admin/direct'] = array(
+    'title'            => 'Add registration',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('inscription_jesa_direct'),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'description'      => 'Add a new registration and, if needed, a new user.',
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'inscription_jesa.inc',
+  );    
+  //fonction d'autocompletion pour obtenir le nom des stagiaires existants
+  $items['inscriptions/jeunes/admin/direct/stagiaire_autoc'] = array(
+    'title'            => 'Stagiaire autocomplete',
+    'page callback'    => '_inscription_jesa_stagiaire_autocomplete',
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'description'      => 'Autocomplete to get child list',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'inscription_jesa.inc',
+  );
+  //fonction d'autocompletion pour obtenir le nom des parents existants
+  $items['inscriptions/jeunes/admin/link/parent_autoc'] = array(
+    'title'            => 'Parent autocomplete',
+    'page callback'    => '_inscription_jesa_parent_autocomplete',
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'description'      => 'Autocomplete to get parent list',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'inscription_jesa.inc',
+  );  
+  $items['inscriptions/jeunes/admin/link'] = array(
+    'title'            => 'Link parent child',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('inscription_jesa_link'),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'description'      => 'Add a new link between parent and child and, if needed, create the users',
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'inscription_jesa.inc',
+  );
+  $items['inscriptions/jeunes/admin/direct/%/formulaire'] = array(
+    'title' => 'form',
+    'page callback' => 'inscription_jesa_toggle_formulaire',
+    'page arguments' => array(4),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'type' => MENU_CALLBACK,   
+    'file'             => 'inscription_jesa.inc',
+  );  
+  $items['inscriptions/jeunes/admin/direct/%/paiement'] = array(
+    'title' => 'payment',
+    'page callback' => 'inscription_jesa_toggle_paiement',
+    'page arguments' => array(4),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer children subscription'),
+    'type' => MENU_CALLBACK,   
+    'file'             => 'inscription_jesa.inc',
+  );  
+
+  
+  //menu pour les parents
+  $items['inscriptions/jeunes/gestion'] = array(
+    'title'            => 'Your registrations',
+    'page callback'    => 'inscription_jesa_list',
+    'access callback' => 'user_access',
+    'access arguments' => array('manage children subscription'),
+    'description'      => 'Manage your registrations.',
+    'type'             => MENU_NORMAL_ITEM,    
+    'file'             => 'inscription_jesa_list.inc',
+  );
+  $items['inscriptions/jeunes/gestion/%/add'] = array( 
+    'file'             => 'inscription_jesa_list.inc',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('inscription_jesa_register', 3),
+    'access callback' => 'user_access',
+    'access arguments' => array('manage children subscription'),
+    'type'             => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implemente hook_help() permetant d'avoir une aide simplifiée.
+ *
+ *  @ingroup Inscription
+ */
+function inscription_jesa_help($path, $arg) {
+  switch ($path) {
+    case 'inscription_jeune':
+      $help = t('Management of the members registration');
+      break;
+  }
+  if (!empty($help)) {
+    return '<p>' . $help . '</p>';
+  }
+}
+
+/** 
+ * Définition des droits d'accès
+ *
+ *  Il y a deux droits d'accès:
+ *   - manage children subscription : 
+ *     - Permet à l'utilisateur de créer les utilisateurs (parent et enfant) et
+ *        de créer le lient entre eux.@n
+ *     - Permet d'introduire une inscription.
+ *    Ce droit est donné aux roles "gestionaire de stage" et "administrateur".
+ *   - manage children subscription : Permet de gérer les inscriptions entre le 
+ *    parent et l'enfant.
+ *
+ *  Implemente hook_permission().
+ *
+ *  @ingroup Inscription
+ */ 
+function inscription_jesa_permission() {  
+  return array( 
+  	'administer children subscription' => array( 
+	    'title' => t('administer children subscription') , 
+	    'description' => t('Allow to administer the registrations for the event manager.'),
+    ), 
+  	'manage children subscription' => array(
+	    'title' => t('Manage children subscription') , 
+	    'description' => t('Allow to manage the children\'s registrations.'), 
+  	), 
+   ); 
+}
+
+/**
+ *  Vérifie la relation parent stagiaire.
+ *
+ *  @param array $stagiaire information sur le stagiaire
+ *    - @c 'uid' : l'identifiant du stagiaire
+ *    - @c 'nom' : (optionel) le nom du stagiaire
+ *    - @c 'prenom' : (optionel) le prénom du stagiaire
+ *  @remark Le nom et le prénom ne sont utilisés que dans les messages 
+ *      d'erreurs
+ *     
+ *  @param array $parent information sur le parent
+ *    - @c 'uid' : l'identifiant du parent.
+ *
+ *  @param $lien (optionel) caractère indiquant le type de lien entre le parent 
+ *  et le stagiaire.\n
+ * Les valeurs possibles sont:
+ *    - @c P : Père,  
+ *    - @c M : Mère,  
+ *    - @c T : Tuteur/Tutrice,  
+ *  @return 
+ *    - @c TRUE si le lien spécifié existe déjà ou, si $lien n'est pas spécifié, 
+ *  qu'un lien existe entre le parent et le stagiaire.
+ *    - @c 'create' s'il faut créer le lien
+ *    -    Un message d'erreur en cas de problème.
+ * 
+ *  @ingroup Helper
+ */
+function _inscription_jesa_check_lien($stagiaire, $parent, $lien = NULL) {
+	$query = 'SELECT
+              p.field_lien_parent_uid,
+              e.field_lien_enfant_uid,
+              t.field_lien_type_value
+            FROM
+              field_data_field_lien_enfant e
+              JOIN field_data_field_lien_parent p
+                ON p.entity_type    = e.entity_type
+                  AND p.deleted     = 0
+                  AND p.delta       = 0
+                  AND p.bundle      = \'parent_stagiaire\'
+                  AND p.entity_id   = e.entity_id
+                  AND p.revision_id = p.revision_id
+              JOIN field_data_field_lien_type t
+               ON t.entity_type     = e.entity_type
+                  AND t.deleted     = 0
+                  AND t.delta       = 0
+                  AND t.bundle      = \'parent_stagiaire\'
+                  AND t.entity_id   = e.entity_id
+                  AND t.revision_id = p.revision_id
+            WHERE
+              e.deleted    = 0
+              AND e.delta  = 0
+              AND e.bundle = \'parent_stagiaire\'
+              AND e.field_lien_enfant_uid = :stagiaire_uid
+          ';
+
+	$results = db_query($query,
+               array(
+                 ':stagiaire_uid'=> $stagiaire['uid'],
+               )
+						 );
+  if ($results->rowCount() == 0) {
+    // On n'a pas trouvé de lien pour ce stagiaire
+    $return = 'create';
+  }
+  else {
+    //création du tableau parent => lien
+    $parent_liens = $results->fetchAllKeyed(0,2);
+    if (array_key_exists($parent['uid'], $parent_liens)) {
+      //le parent a déjà un lien avec le stagiaire
+      if (empty($lien)) {
+        //Si le lien n'est pas spécifié, on renvoie TRUE (un lien existe)
+        $return = TRUE;
+      }
+      else {
+        if ($parent_liens[$parent['uid']] == $lien) {
+          //le lien est le même => on ne doit rien faire
+          $return = TRUE;
+        }
+        else {
+          //le lien est différent => il doit le modifier dans la liste des liens
+          $return = t('A different link exists between the parent en the child (@stagiaire_prenom @stagiaire_nom).',
+              array(
+                '@stagiaire_nom'    => isset($stagiaire['nom']) ? $stagiaire['nom'] : '-',
+                '@stagiaire_prenom' => isset($stagiaire['prenom']) ? $stagiaire['prenom'] : '-',
+              )
+          );
+        }
+      }
+    }
+    else {
+     //le parent n'a pas de lien avec le stagiaire
+      if (empty($lien)) {
+        $return = TRUE;
+      }
+      else {
+        //y a t'il un autre utilisateur qui a un lien du type demandé avec le 
+        // stagiaire ?
+        $search_lien = array_search($lien, $parent_liens);
+        if($search_lien === FALSE) {
+          //le parent n'a pas de lien et le lien n'est pas utilisé par un autre
+          // parent => on crée le lien
+          $return = 'create';
+        }
+        else {
+          //il y a déjà un lien de ce type pour ce stagiaire mais le parent
+          // n'est pas le même => problème
+          $return = t('The link [-en] for @stagiaire_prenom @stagiaire_nom [-stagiaire_uid] already exists with [-en_parent_uid].\nCheck if this link is valid.',
+            array(
+              '-en'             => $lien,
+              '-stagiaire_uid'    => $stagiaire['uid'],
+              '@stagiaire_nom'    => isset($stagiaire['nom']) ? $stagiaire['nom'] : '-',
+              '@stagiaire_prenom' => isset($stagiaire['prenom']) ? $stagiaire['prenom'] : '-',
+              '-en_parent_uid'  => $search_lien,
+            )
+          );
+        }
+      }
+    }
+  }
+  return $return;
+}
+/**
+ *  Revoie let type de relation entre un parent et un stagiaire.
+ *
+ *  @param uid $stagiaire_uid l'identifiant du stagiaire
+ *     
+ *  @param array $parent_uid l'identifiant du parent.
+ *  @return 
+ *    - @c FALSe s'il n'y a pas de lien, 
+ *    - @c P : Père,  
+ *    - @c M : Mère,  
+ *    - @c T : Tuteur/Tutrice,  
+ * 
+ *  @ingroup Helper
+ */
+function _inscription_jesa_get_lien($stagiaire_uid, $parent_uid) {
+	$query = 'SELECT
+              t.field_lien_type_value
+            FROM
+              field_data_field_lien_enfant e
+              JOIN field_data_field_lien_parent p
+                ON p.entity_type    = e.entity_type
+                  AND p.deleted     = 0
+                  AND p.delta       = 0
+                  AND p.bundle      = \'parent_stagiaire\'
+                  AND p.entity_id   = e.entity_id
+                  AND p.revision_id = p.revision_id
+              JOIN field_data_field_lien_type t
+               ON t.entity_type     = e.entity_type
+                  AND t.deleted     = 0
+                  AND t.delta       = 0
+                  AND t.bundle      = \'parent_stagiaire\'
+                  AND t.entity_id   = e.entity_id
+                  AND t.revision_id = p.revision_id
+            WHERE
+              e.deleted    = 0
+              AND e.delta  = 0
+              AND e.bundle = \'parent_stagiaire\'
+              AND e.field_lien_enfant_uid = :stagiaire_uid
+              AND p.field_lien_parent_uid = :parent_uid
+          ';
+
+	$results = db_query($query,
+               array(
+                 ':stagiaire_uid'=> $stagiaire_uid,
+                 ':parent_uid'   => $parent_uid,
+               )
+						 );
+  if ($results->rowCount() == 0) {
+    // On n'a pas trouvé de lien pour ce stagiaire
+    $return = FALSE;
+  }
+  elseif ($results->rowCount() == 1) {
+    $return = $results->fetchField(0);
+  } 
+  else {
+    //Situation d'erreur => on ne peut avoir qu'un seul type de lien entre
+    // le parent et l'enfant. => nettoyage DB necessaire
+    $return = FALSE;
+    watchdog(
+      'jesa inscription', 
+      'More than one link found between parent @parent and child @stagiaire in table field_data_field_lien_type. There must be only one. Please delete the wrong links.', 
+      array('@parent'=> $parent_uid, '@stagiaire'=> $stagiaire_uid), 
+      WATCHDOG_ALERT, NULL)
+    ;
+  }
+ return $return;
+}
+
+/**
+ *  Génère les champs nécessaires à l'inscription d'un stagiaire.
+ *
+ *  Par défaut, tous les champs seront utilisés et obligatoires. Le paramètre
+ *  $selection permet de modifier ce comportement.
+ *  @param array $selection Tableau associatif ayant pour clef le nom du champ,
+ *    et pour valeur :
+ *    - (champ => FALSE)  indique que le champ ne doit pas être utilisé
+ *    - (champ => 'not_required') indique que le champ doit être utilisé et qu'il 
+ *      n'est obligatoire 
+ * 
+ *  @ingroup Helper
+ **/
+function _inscription_jesa_get_form_incscription_fields($selection) {
+  $return = array();
+  if (!isset($selection['annee']) ||  ($selection['annee'] !== FALSE)) {
+    $return['annee'] = array(
+      '#type'      => 'textfield',
+      '#title'     => t('Study level'),
+      '#description' => t('This is the study level of the participant or the one he/she just finish (in case of summer events)'),
+      '#size'      => 3,
+      '#maxlength' => 3,
+      '#required'  => isset($selection['annee']['required']) ? $selection['annee']['required'] : TRUE,
+    );
+  }
+  if (!isset($selection['train']) ||  ($selection['train'] !== FALSE)) {
+    $return['train'] = array(
+      '#type'      => 'checkbox',
+      '#title'     => t('Will come with the train'),
+      '#description' => t('Si le stagiaire vient par le train, l&acute;organisateur viendra le chercher &agrave; la gare de Huy.'),
+      '#return_value' => 1, 
+      '#default_value' => 0, 
+      '#required'  => isset($selection['train']['required']) ? $selection['train']['required'] : TRUE,
+    ); 
+  }
+  return $return;
+}
+
+/**
+ * Inscrit un stagiaire à un stage.
+ * 
+ * @param $stagiaire_uid l'identifiant du stagiaire.
+ * @param $stage_nid l'identifiant du node du stage.
+ * @param $train  : 1 si le stagiaire vient en train, 0 autrement.
+ * @param $annee  : l'année d'étude dans laquelle il se trouve (ou qu'il 
+ *                vient de terminer).
+ *
+ *  @ingroup Helper
+ **/
+function _inscription_jesa_set_incription ($stagiaire_uid, $stage_nid, $train, $annee) {
+  $stagiaire['uid'] = $stagiaire_uid; 
+  $account = user_load($stagiaire['uid']);
+  $stagiaire['train']  = $train;
+  $stagiaire['annee']  = $annee;
+  $stagiaire['nom']    = $account->field_nom[LANGUAGE_NONE][0]['value'];
+  $stagiaire['prenom'] = $account->field_prenom[LANGUAGE_NONE][0]['value'];
+  try {
+    $result = _inscription_jesa_create_node_stagiaire($stagiaire, $stage_nid);
+    if ($result === TRUE) {
+      $stage_node = node_load($stage_nid);
+      drupal_set_message(t('@prenom @nom is registred on the event @stage.',
+                           array(
+                                  '@nom'    => $stagiaire['nom'],
+                                  '@prenom' => $stagiaire['prenom'],
+                                  '@stage'  => $stage_node->title,
+                                )
+                          ),
+                          'status'
+                        );
+    }
+    else {
+      drupal_set_message($result, 'warning');
+    }
+  }
+  catch (ErrorException $e) {
+    $stage_node = node_load($stage_nid);
+    drupal_set_message(
+      t('Le syst&egrave;me a rencontr&eacute; un probl&egrave;me lors de
+        l&rsquo;inscription de @prenom @nom au stage @stage (!msg).</br> Veuillez prendre contact avec 
+        avec le @responsable pour l&rsquo;inscription.',
+        array(
+          '@nom'    => $stagiaire['nom'],
+          '@prenom' => $stagiaire['prenom'],
+          '@stage'  => $stage_node->title,
+          '!msg'    => $e->getMessage(),
+          '@responsable' => l(t('event manager'), '/contact/Stage pour jeunes'),
+        )
+      ),
+      'error'
+    );
+  }
+}
+
+ /**
+  * Inscrit le stagiare à un stage.
+  *
+  * Crée un node stagiaire.
+  * @exception Lance une exception ErrorException si le node ne peut pas être 
+  *    créé.
+  * 
+  * @param $stagiaire un tableau associatif contenant 
+  *    - @c nom    : le nom du stagiaire.
+  *    - @c prenom : le prénom du stagiaire.
+  *    - @c annee  : l'année d'étude dans laquelle il se trouve (ou qu'il vient de 
+  *                terminer).
+  *    - @c uid    : l'identifiant du stagiaire.
+  *    - @c train  : 1 si le stagiaire vient en train, 0 autrement.
+  * @param $stage_nid indentifiant du node stage.
+  *
+  * @return TRUE si le node est correctement crée un message d'erreur autrement.
+  * 
+  *  @ingroup Helper
+  */
+function _inscription_jesa_create_node_stagiaire($stagiaire, $stage_nid) {
+  $stage = node_load($stage_nid);
+  if (_inscription_jesa_is_stagiaire($stagiaire, $stage_nid)) {
+    // le participant est déjà inscrit à ce stage => on ne fait rien
+    return t('@prenom @nom is already registred on the event @stage.',
+      array(
+        '@nom'    => $stagiaire['nom'],
+        '@prenom' => $stagiaire['prenom'],
+        '@stage'  => $stage->title,
+      )
+    );
+  }
+  
+  global $user;
+  $node = new stdClass();
+
+  $node->type   = 'stagiaire';
+  $node->is_new = TRUE;
+  node_object_prepare($node);
+
+  $node->name     = $user->name;
+  $node->title    = 'Stagiaire' . ' - ' . $stagiaire['prenom'] . ' ' . 
+    $stagiaire['nom'] . ' - ' . $stage->title;
+  $node->language = 'fr';
+
+  $node->comment  = 0;   // 2 = comments on, 1 = comments off
+  $node->status   = NODE_PUBLISHED;   // (1 or 0): published or not
+  $node->promote  = NODE_NOT_PROMOTED;   //(1 or 0): promoted to front page
+  $node->revision = 0;
+  $node->sticky   = NODE_NOT_STICKY;   //(1 or 0): sticky at top of lists
+
+  
+  $node->field_stagiaire_annee[LANGUAGE_NONE][0]['value'] = $stagiaire['annee'];
+  $node->field_stagiaire_train[LANGUAGE_NONE][0]['value'] = $stagiaire['train'];
+  $node->field_stagiaire_user[LANGUAGE_NONE][0]['uid']    = $stagiaire['uid'];
+  $node->field_stagiaire_stage[LANGUAGE_NONE][0]['nid'] = $stage->nid;
+  node_submit($node);
+  
+  // on va impersonaliser l'utilisateur connecté (qui n'a pas le droit
+  //  de créer ou modifier un node stagiaire).
+  // Cette technique est sécurisée.
+  // @todo créer un utilisateur technique pour diminuer les droits associés
+  global $user;
+  $original_user = $user;
+  $old_state = drupal_save_session();
+  drupal_save_session(FALSE);
+  $user = user_load(1);
+  //création du compte
+  try {
+    node_save($node);
+  }
+  catch (Exception $e) {
+    throw new ErrorException(
+      'L&rsquo;inscription ne peut pas &ecirc;tre cr&eacute;&eacute;e',
+      0,
+      E_USER_WARNING
+    );
+  }    
+  //retour à l'utilisateur normal
+  $user = $original_user;
+  drupal_save_session($old_state);
+  return TRUE;
+}
+
+/**
+ * Vérifie si le stagiaire est inscrit au stage.
+ *
+ * @param $stagiaire un tableau associatif contenant 
+ *    - uid    : l'identifiant du stagiaire.
+ * @param $stage_nid indentifiant du node stage. 
+ *
+ * @return : TRUE si le node stagiaire est inscrit,
+ *  FALSE autrement.
+ * 
+ *  @ingroup Helper
+ */
+function _inscription_jesa_is_stagiaire($stagiaire, $stage_nid) {
+  $query = '
+    SELECT 
+      n.nid AS nid
+    FROM 
+        {node} n
+    LEFT JOIN {field_data_field_stagiaire_user} stu 
+      ON n.nid              = stu.entity_id 
+        AND stu.entity_type = :entity_type 
+        AND stu.deleted     = 0
+    LEFT JOIN {field_data_field_stagiaire_stage} sts 
+      ON n.nid              = sts.entity_id 
+        AND sts.entity_type = :entity_type 
+        AND sts.deleted     = 0
+    WHERE 
+          n.status                      = :published
+      AND n.type                        = :node_type 
+      AND sts.field_stagiaire_stage_nid = :stage_nid
+     AND stu.field_stagiaire_user_uid   = :uid      
+  ';
+	try {
+     $results = db_query(
+      $query,
+      array(
+        ':published'   => 1,
+        ':node_type'   => 'stagiaire',
+        ':entity_type' => 'node',
+        ':stage_nid'   => $stage_nid,
+        ':uid'         => $stagiaire['uid'],          
+       ),
+      array('throw_exception' => TRUE,));
+  }
+  catch(PDOException $e) {
+    watchdog_exception('jesa inscription', $e, 'DB error of %type: !message 
+      in %function (line %line of %file).', array(), WATCHDOG_ALERT, NULL);
+    throw new ErrorException(
+      t('Error during database access.'),
+      0,
+      E_USER_NOTICE
+    );
+  }
+
+  return ($results->rowCount() == 1);
+}
+
+ /**
+ * Donne la liste des deux stages prochains stages pour jeunes.
+ *
+ * Les stages sélectionnés doivent au moins être une semaine dans le futur.
+ *
+ * @param $num_stages (optionel)nombre de stages à retourner dans la liste. Par
+ * défaut a la valeur 1.
+ * 
+ * @return un tableau associatif (nodeid => date du stage) des stages trouvés.
+ *   Un tableau vide si aucun stage n'est trouvé.
+ */
+ function _inscription_jesa_get_next_stages($num_stages=1) {
+
+  $query = "
+    SELECT
+      n.nid AS nid,
+      DATE_FORMAT(st.field_stage_dates_value, :format_display) AS stagedate
+    FROM 
+      {node} n
+      INNER JOIN {field_data_field_stage_public} p 
+        ON    n.nid         = p.entity_id 
+          AND p.entity_type = :entity_type
+          AND p.deleted     = 0      
+      LEFT JOIN {field_data_field_stage_dates} st 
+        ON     n.nid         = st.entity_id 
+          AND st.entity_type = :entity_type 
+          AND st.deleted     = 0
+    WHERE 
+          n.status                   = :published
+      AND n.type                     = :stage_bundle
+      AND st.field_stage_dates_value > DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 7 DAY),:format_date)
+      AND p.field_stage_public_tid   = :public     
+    ORDER BY 
+      stagedate ASC
+  ";
+  
+	try {
+     $results = db_query_range(
+      $query,
+      0,
+      $num_stages,
+      array(
+        ':published'        => NODE_PUBLISHED,
+        ':entity_type'      => 'node',
+        ':stage_bundle'     => 'stage',
+        ':format_date'      => '%Y-%m-%dT00:00:00',
+        ':format_display'   => '%Y-%m-%d',
+        ':public'           => '10',                  // 10 : stage jeunes
+      ),
+      array('throw_exception' => TRUE,));
+  }
+  catch(PDOException $e) {
+    watchdog_exception('jesa inscription', $e, 'DB error of %type: !message in 
+      %function (line %line of %file).', array(), WATCHDOG_ALERT, NULL);
+    throw new ErrorException(
+      t('Error during database access.'),
+      0,
+      E_USER_NOTICE
+    );
+  }
+  return $results->fetchAllKeyed(0,1);
+ }
