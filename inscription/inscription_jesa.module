@@ -1,5 +1,4 @@
-﻿<?php
-
+<?php
 /**
  * Module de gestion des inscriptions des stagiaires par le gestionnaire de stage ou par un parent.
  *

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
 *  Fonction de rappel (callback) pour la gestion des inscriptions.
 * 
