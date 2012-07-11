@@ -414,13 +414,14 @@ function _inscription_jesa_get_form_incscription_fields($selection) {
  *
  *  @ingroup Helper
  **/
-function _inscription_jesa_set_incription ($stagiaire_uid, $stage_nid, $train, $annee) {
+function _inscription_jesa_set_incription ($stagiaire_uid, $stage_nid, $train, $annee, $formulaire) {
   $stagiaire['uid'] = $stagiaire_uid; 
   $account = user_load($stagiaire['uid']);
-  $stagiaire['train']  = $train;
-  $stagiaire['annee']  = $annee;
-  $stagiaire['nom']    = $account->field_nom[LANGUAGE_NONE][0]['value'];
-  $stagiaire['prenom'] = $account->field_prenom[LANGUAGE_NONE][0]['value'];
+  $stagiaire['train']      = $train;
+  $stagiaire['annee']      = $annee;
+  $stagiaire['nom']        = $account->field_nom[LANGUAGE_NONE][0]['value'];
+  $stagiaire['prenom']     = $account->field_prenom[LANGUAGE_NONE][0]['value'];
+  $stagiaire['formulaire'] = $formulaire;
   try {
     $result = _inscription_jesa_create_node_stagiaire($stagiaire, $stage_nid);
     if ($result === TRUE) {
@@ -510,10 +511,11 @@ function _inscription_jesa_create_node_stagiaire($stagiaire, $stage_nid) {
   $node->sticky   = NODE_NOT_STICKY;   //(1 or 0): sticky at top of lists
 
   
-  $node->field_stagiaire_annee[LANGUAGE_NONE][0]['value'] = $stagiaire['annee'];
-  $node->field_stagiaire_train[LANGUAGE_NONE][0]['value'] = $stagiaire['train'];
-  $node->field_stagiaire_user[LANGUAGE_NONE][0]['uid']    = $stagiaire['uid'];
-  $node->field_stagiaire_stage[LANGUAGE_NONE][0]['nid'] = $stage->nid;
+  $node->field_stagiaire_annee[LANGUAGE_NONE][0]['value']      = $stagiaire['annee'];
+  $node->field_stagiaire_train[LANGUAGE_NONE][0]['value']      = $stagiaire['train'];
+  $node->field_stagiaire_formulaire[LANGUAGE_NONE][0]['value'] = $stagiaire['formulaire'];
+  $node->field_stagiaire_user[LANGUAGE_NONE][0]['uid']         = $stagiaire['uid'];
+  $node->field_stagiaire_stage[LANGUAGE_NONE][0]['nid']        = $stage->nid;
   node_submit($node);
   
   // on va impersonaliser l'utilisateur connecté (qui n'a pas le droit

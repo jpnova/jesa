@@ -378,7 +378,8 @@ function inscription_jesa_register_submit($form, &$form_state) {
         $form_state['values']['user'], 
         $stage, 
         $form_state['values']['train'], 
-        $form_state['values']['annee']
+        $form_state['values']['annee'],
+        0
       );
     }
   }

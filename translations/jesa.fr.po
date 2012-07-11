@@ -279,6 +279,11 @@ msgid "Events"
 msgstr "Stages"
 
 #: inscription/inscription_jesa.inc:590
+msgid "Is the registration form already received."
+msgstr "Le formulaire d'inscription a-t'il été reçu."
+
+
+#: inscription/inscription_jesa.inc:590
 msgid "the fisrtname is mandatory for a new member."
 msgstr "Le prénom est obligatoire pour un nouvel utilisateur."
 
@@ -352,11 +357,11 @@ msgstr "Num&eacute;ro de t&eacute;l&eacute;phone."
 
 #: inscription/inscription_jesa.inc:1324
 msgid "Adress (line 1)"
-msgstr "Adresse (ligne 2)"
+msgstr "Adresse (ligne 1)"
 
 #: inscription/inscription_jesa.inc:1333
 msgid "Adress (line 2)"
-msgstr "Adresse (ligne 1)"
+msgstr "Adresse (ligne 2)"
 
 #: inscription/inscription_jesa.inc:1342
 msgid "Birthdate"

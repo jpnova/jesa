@@ -540,6 +540,14 @@ function inscription_jesa_direct($form, &$form_state) {
     'train' => array('required' => FALSE,),
   );
   $form['stage'] += _inscription_jesa_get_form_incscription_fields($selection);
+  $form['stage']['formulaire'] = array(
+      '#type'      => 'checkbox',
+      '#title'     => t('Form'),
+      '#description' => t('Is the registration form already received.'),
+      '#return_value' => 1, 
+      '#default_value' => 0, 
+      '#required'  => FALSE,
+  ); 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -607,7 +615,7 @@ function inscription_jesa_direct_validate($form, &$form_state) {
       if (empty($stagiaire['sexe'])) {
         form_set_error('stagiaire][nouveau][sexe', ucfirst(t('the gender is mandatory for a new member.')));
       } 
-      if (empty($stagiaire['mail']) && empty($stagiaire['nouveau']['telephone'])) {
+      if (empty($stagiaire['mail']) && empty($stagiaire['telephone'])) {
         form_set_error(
           'stagiaire][nouveau][mail', 
           ucfirst(t('the email address or the phone number is mandatory for a new member.'))
@@ -648,7 +656,8 @@ function inscription_jesa_direct_submit($form, &$form_state) {
       $stagiaire['uid'], 
       $form_state['values']['stage']['list'], 
       $form_state['values']['stage']['train'], 
-      $form_state['values']['stage']['annee']
+      $form_state['values']['stage']['annee'],
+      $form_state['values']['stage']['formulaire']
     );
   }
   catch (ErrorException $e) {
@@ -1060,18 +1069,6 @@ function _inscription_jesa_create_user($personne, $roles = array()) {
       0,
       E_USER_NOTICE
     );
-  }
-  //envoie du mail de bienvenue (si le mail n'est pas un email générique)
-  // @todo faire un mail personalisé pour le stagiaire et le parent?
-  if (!preg_match('/^x[0-9]{1,}@example.com$/', $account->mail)) {
-    if (!_user_mail_notify('register_admin_created', $account)) {
-      drupal_set_message(
-        t('The welcome mail for @prenom @nom cannot be sent, please send the mail manually.',
-          array('@nom' => $stagiaire['nom'], '@prenom' => $stagiaire['prenom'],)
-        ),
-        'error'
-      );
-    }
   }
   return $result;
 }
