@@ -791,69 +791,53 @@ function _inscription_jesa_parent_autocomplete($string) {
 */
 function _inscription_jesa_validate_user($user_data) {
   $return = FALSE;
-  $user_by_name = user_load_by_name($user_data['user_name']);
-  if (!empty($user_data['mail'])) {
-    if (!valid_email_address($user_data['mail'])) {
-      $return = t('The email address is not valid.');    
-    }
-    else {
-      $user_by_mail = user_load_by_mail($user_data['mail']);
-      if (!empty($user_by_name) || !empty($user_by_mail)) {
-        if ($user_by_name->uid = $user_by_mail->uid) {
-          //les deux utilisateurs sont les mêmes
-          $return = $user_by_name; 
-        }
-        else {
-          //problème, les deux utilisateurs trouvés ne correspondent pas
-          $return = t('The user found using the name (@nom) is different from the one found using the email address (@email).',
-            array(
-              '@nom'   => $user_by_name->name,
-              '@email' => $user_by_mail->name,
-            )
-          );
-        }
-      }
-      else {
-        // nous savons qu'au moins une des deux références à la personne (par le
-        // mail ou par le nom d'utilisateur) est vide.
-        if (!empty($user_by_mail)) {
-          //on contrôle que le nom d'utilisateur trouvé correspond
-          // à celui introduit
-          if (drupal_strtolower($user_data['user_name']) == drupal_strtolower($user_by_mail->name)) {
-            //il y a correspondance
-            $return = $user_by_mail;
-          }
-          else {
-            $return = t('The user found using the name introduced (@user_name) is different from the one found using the email address (@email).',
-              array(
-                '@user_name' => $user_data['user_name'],
-                '@email' => $user_by_mail->name,
-              )
-            );
-          }
-        }
-        else {
-          //$user by mail est vide, on controle $user_by_name
-          if (!empty($user_by_name)) {
-            $return = $user_by_name;
-          }
-          else {
-            //les deux objets sont vides on ne fait rien
-            $return = FALSE;
-          }
-          }
-      }
-    }
+  if (!empty($user_data['mail']) && !valid_email_address($user_data['mail'])) {
+    $return = t('The email address is not valid.');    
   }
   else {
-    //seul le nom est rempli
-    if (!empty($user_by_name)) {
-      if ($user_by_name->uid <> 0) {
-        $return = $user_by_name;
-      }
-    }
-    // else { les deux objets sont vides on ne fait rien}
-  }
+    $user_by_name = user_load_by_name($user_data['user_name']);
+    $user_by_mail = user_load_by_mail($user_data['mail']);
+  
+    if (empty($user_by_name->uid) && empty($user_by_mail->uid)) {
+    //L'utilisateur n'a pas été trouvé ni par son adresse mail ni par son nom
+    // validation correcte => on va créer l'utilisateur dans submit
+    }      
+    elseif (!empty($user_by_name->uid) && empty($user_by_mail->uid)) {
+    // l'utilisateur a été trouvé par son nom et comme il n'y a pas
+    // d'email il n'y a pas de conflit, on utilise la référence trouvée
+      $return = $user_by_name;
+    }            
+    elseif (empty($user_by_name->uid) && !empty($user_by_mail->uid)) {
+      // l'utilisateur a été trouvé par son mail et il n'y a pas
+      // été trouvé par son nom => pas normal probablement une adresse mail
+      // déjà utilisée 
+      $return = t('The email address (@email) is already used for another user (@firstname @name).',
+        array(
+          '@firstname' => $user_by_mail->field_prenom[LANGUAGE_NONE][0]['value'],
+          '@name'      => $user_by_mail->field_nom[LANGUAGE_NONE][0]['value'],
+          '@email'     => $user_data['mail'],
+        )
+      );    
+    }                      
+    else {
+      //Les deux références ont donné un utilisateur
+      // on controle que les deux utilisateurs sont identiques
+      if ($user_by_name->uid == $user_by_mail->uid) {
+      //les deux utilisateurs sont les mêmes
+      $return = $user_by_name; 
+    }      
+      else {
+      //problème, les deux utilisateurs trouvés ne correspondent pas
+      $return = t('The user found using the name (@nom) is different from the one found using the email address (@email).',
+        array(
+          '@nom'   => $user_by_name->name,
+          '@email' => $user_by_mail->name,
+        )
+      );
+    }                   
+    }                                
+  } 
+
   return $return;
 }
 

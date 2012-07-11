@@ -301,6 +301,10 @@ msgstr ""
 msgid "The status of the registration form has been modified."
 msgstr "Le statut du formulaire d'inscription est changé"
 
+#: inscription/inscription_jesa.inc:685
+msgid "The email address (@email) is already used for another user (@firstname @name)."
+msgstr "L'adresse mail (@email) est déjà utilisée par un autre utilisateur (@firstname @name)."
+
 #: inscription/inscription_jesa.inc:711
 msgid "The status of the payment has been modified."
 msgstr "Le statut du paiement est changé."
