@@ -58,7 +58,7 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   $pdf->SetFont('helvetica', '', 12);
   $pdf->Ln(10);
   
-  $txt = 'Inscription au stage d\'astronomie se déroulant à Modave du ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value']) . ' au ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value2']);
+  $txt = 'Inscription au stage d\'astronomie se déroulant à Modave du ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value']) . ' à 16h au ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value2']) . ' à 16h';
   $txt .= ' et dont le prix s\'élève à ' . $stage->field_stage_prix[LANGUAGE_NONE][0]['value'] . ' €, à payer sur le compte BE50 6528 2472 6418 (code bic HBKABE22) au plus tard deux semaines avant le début du stage.' . "\n";
   $pdf->Write($h=0, $txt, $link='', $fill=0, $align='L', $ln=true, $stretch=0, $firstline=false, $firstblock=false, $maxh=0);
   $pdf->Ln(3);
