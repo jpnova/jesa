@@ -43,9 +43,6 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   
   $stage = node_load($node_stagiaire->field_stagiaire_stage[LANGUAGE_NONE][0]['nid']);
   
-  
- // require_once(dirname(__FILE__) . '/jesa_pdf.php');
-  
   // create new PDF document
   $pdf = new JESAPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
   
@@ -71,8 +68,6 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   else {
     $txt .= 'Date de naissance :  ........../........../...............';
   }
-  
-  
   $pdf->MultiCell(95, 20, $txt, 0, 'L', 1, 0, '', '', true);
   
   $txt = 'Prénom : ' . $stagiaire->field_prenom[LANGUAGE_NONE][0]['value'] . "\n";
@@ -83,7 +78,6 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   else {
     $txt .= 'Sexe :   o M     o F';  
   }
-  
   $pdf->MultiCell(95, 20, $txt, 0, 'L', 1, 1, '', '', true);
   
   if (isset($stagiaire->field_adresse_1[LANGUAGE_NONE][0]['value'])) {
@@ -96,10 +90,8 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
     $txt .= "\n";
     $txt .= 'Code postal : .............. Localité :.......................................................';
   }
-  
   $pdf->Write($h=0, $txt, $link='', $fill=0, $align='L', $ln=true, $stretch=0, $firstline=false, $firstblock=false, $maxh=0);
   $pdf->Ln(4);
-  
   
   if (isset($stagiaire->field_tel[LANGUAGE_NONE][0]['value'])) {
     $txt = 'Téléphone : ' . $stagiaire->field_tel[LANGUAGE_NONE][0]['value'] . "\n";
@@ -118,7 +110,7 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   $pdf->Ln(4);
   
   $txt = 'Stage d\'astronomie  se déroulant à Modave du ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value']) . ' au ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value2']);
-  $txt .= ' et dont le prix s\'élève à ' . $stage->field_stage_prix[LANGUAGE_NONE][0]['value'] . ' €, à payer sur place.' . "\n";
+  $txt .= ' et dont le prix s\'élève à ' . $stage->field_stage_prix[LANGUAGE_NONE][0]['value'] . ' €, à payer sur le compte BE50 6528 2472 6418 (code bic HBKABE22) au plus tard deux semaines avant le début du stage.' . "\n";
   $txt .= "\n";
   $txt .= 'Viendras-tu par les transports en commun ? ' . ($train ? 'oui' : 'non') . "\n";
   $txt .= "\n";
@@ -163,8 +155,6 @@ function _jesa_inscription_generate_autorisation_file($node_stagiaire, $parent_u
   $stagiaire = user_load($node_stagiaire->field_stagiaire_user[LANGUAGE_NONE][0]['uid']);
   $stage = node_load($node_stagiaire->field_stagiaire_stage[LANGUAGE_NONE][0]['nid']);
   $parent = user_load($parent_uid);
-  
-
   
   // create new PDF document
   $pdf = new JESAPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);

@@ -11,6 +11,6 @@
 function block_jesa_uninstall() {
   variable_del('block_jesa_lien_faq');
   variable_del('block_jesa_lien_contact');  
-  variable_del('block_jesa_contact_adulte');
-  variable_del('block_jesa_contact_jeune');  
+  variable_del('block_jesa_contact_adulte_uid');
+  variable_del('block_jesa_contact_jeune_uid');    
 }

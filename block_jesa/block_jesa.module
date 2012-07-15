@@ -41,6 +41,9 @@ function block_jesa_block_configure($delta = '') {
   // In this example, we'll allow the administrator to customize
   // the text of the 'configurable text string' block defined in this module.
 
+  variable_del('block_jesa_contact_adulte');
+  variable_del('block_jesa_contact_jeune');  
+
   $form = array();
   if ($delta == 'renseignements') {
     // All we need to provide is the specific configuration options for our
@@ -60,21 +63,21 @@ function block_jesa_block_configure($delta = '') {
       '#description' => t('Link (relative to the content nodes) to the contact page. Normaly you shouldn\'t change it.'),
       '#default_value' => variable_get('block_jesa_lien_contact',  '../contact'),
     );
-    $form['block_jesa_contact_adulte'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Adult event'),
-      '#size' => 60,
-      '#description' => t('Contact name and phone for the event'),
-      '#default_value' => variable_get('block_jesa_contact_adulte',  ''),
-    );
-    $form['block_jesa_contact_jeune'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Youth event'),
-      '#size' => 60,
-      '#description' => t('Contact name and phone for the event'),
-      '#default_value' => variable_get('block_jesa_contact_jeune',  ''),
-    );    
-  }
+    $form['block_jesa_contact_adulte_uid'] = array(
+      '#type'          => 'select',
+      '#title'         => t('Adult event') . ' - ' . t('contact manager'),
+      '#options'       => _block_jesa_list_manager('adultes'),
+      '#description'   => t('Contact manager user ID'),
+      '#default_value' => variable_get('block_jesa_contact_adulte_uid',  ''),
+    );      
+    $form['block_jesa_contact_jeune_uid'] = array(
+      '#type'          => 'select',
+      '#title'         => t('Youth event') . ' - ' . t('contact manager'),
+      '#options'       => _block_jesa_list_manager('jeunes'),
+      '#description'   => t('Contact manager user ID'),
+      '#default_value' => variable_get('block_jesa_contact_jeune_uid',  ''),
+    );      
+      }
   return $form;
 }
 
@@ -91,8 +94,8 @@ function block_jesa_block_save($delta = '', $edit = array()) {
     // Have Drupal save the string to the database.
     variable_set('block_jesa_lien_faq', $edit['block_jesa_lien_faq']);
     variable_set('block_jesa_lien_contact', $edit['block_jesa_lien_contact']);
-    variable_set('block_jesa_contact_adulte', $edit['block_jesa_contact_adulte']);
-    variable_set('block_jesa_contact_jeune', $edit['block_jesa_contact_jeune']);
+    variable_set('block_jesa_contact_adulte_uid', $edit['block_jesa_contact_adulte_uid']);
+    variable_set('block_jesa_contact_jeune_uid', $edit['block_jesa_contact_jeune_uid']);
   }
   return;
 }
@@ -159,14 +162,39 @@ function block_jesa_contents($which_block) {
 			if (isset($node->field_stage_dates['und'][0]['value'])) {
 				// La date de stage existe => on controle si le stage est déjà passé ou non
 				if (time() > strtotime($node->field_stage_dates['und'][0]['value'])) {
+          //comme le stage est passé on ne montre plus de renseignement pour
+          // l'incription
 					$result = ''; 
 				} else {
 					//Controle si la catégorie du type de stage (Jeunes ou adultes) est configurée
 					if (isset($node->field_stage_public['und'][0]['taxonomy_term']->name)) {
 						$Category = $node->field_stage_public['und'][0]['taxonomy_term']->name;
 						$ContactCategory = $Category .'/'. $node->title  ;
-            $ContactPerson = ($Category == 'jeunes') ? variable_get('block_jesa_contact_jeune',  '') : variable_get('block_jesa_contact_adulte',  '');
 					}
+          
+          
+          if ($Category == 'jeunes') {
+            $account = user_load(variable_get('block_jesa_contact_jeune_uid',  ''));            
+          }
+          else {
+            $account = user_load(variable_get('block_jesa_contact_adulte_uid',  ''));
+          }
+          
+          $message = '';
+          if (is_object($account)) {
+            $message = '<p>' . t(
+              'You can contact the event responsible: @firstname @name, phone @phone ', 
+              array(
+                '@firstname' => $account->field_prenom[LANGUAGE_NONE][0]['safe_value'],
+                '@name'      => $account->field_nom[LANGUAGE_NONE][0]['safe_value'],
+                '@phone'     => $account->field_tel[LANGUAGE_NONE][0]['safe_value'],
+               )
+             ) 
+             . '<p/>';
+          }
+          
+          
+          
 					$result = array(	'#type' => 'markup',
 					'#markup' => 
 									t('Consult our <a href="@FaqLink">FAQ</a> or send yours questions by <a href="@ContactLink">clicking here</a>.',
@@ -174,13 +202,16 @@ function block_jesa_contents($which_block) {
 											'@FaqLink' =>  variable_get('block_jesa_lien_faq',  '../faq'),
 											'@ContactLink' => variable_get('block_jesa_lien_contact',  '../contact' ) . '/Stage pour ' . $ContactCategory, 
 											)
-									) . '<p>' .
-									t('You can contact the event responsible @Contact', array('@Contact' => $ContactPerson)) . '<p>' .
+									) . 
+                  $message  .
+                  '<p>' .
 									t('To make a subscription use the following <a href="@SubscriptionLink">link</a>.',
 										array(
 											'@SubscriptionLink' => '../content/inscriptions-stage-pour-' . $Category, 
 											)
 									)
+                  . '<p/>',
+                  
 					);										
 					unset($ContactCategory);	
 					unset($Category);				
@@ -192,4 +223,46 @@ function block_jesa_contents($which_block) {
 			unset($node);
 			return $result;
 		}
+}
+
+/**
+*  Get the list of the managegers
+*  
+* 
+* @param string $type 'Jeunes' or 'Adultes' (Kind of events)
+* 
+* @return an array containing the username (value) and the uid (key) of
+* each manager
+*/
+function _block_jesa_list_manager($type) {
+  //Recherche des gestionaires de stages 
+  $return = array();
+  // Type public : 9 pour les stages adultes, 10 pour les stages jeunes
+  if ($type=='jeunes') {
+    $type_public = 10;
+  }
+  else {
+    $type_public = 9;
+  }
+
+  //Etape 2 : on recherche les utilisateurs 
+  //        gestionnaire de stage (role id 7)
+  //        qui comme parametre de type de public le même que celui du stage
+  $emails = ''; 
+  
+  $query = 'SELECT DISTINCT(ur.uid) 
+            FROM {users_roles} AS ur
+            WHERE ur.rid IN (:rids)';
+  $result = db_query($query, array(':rids' => array(7)));
+
+  foreach ($result as $row) {
+    $user = user_load($row->uid);
+  	if (!empty($user->field_stage_public[LANGUAGE_NONE][0]['tid'])) {
+  		if ($user->field_stage_public[LANGUAGE_NONE][0]['tid'] == $type_public) {
+  			$return[$user->uid] = $user->name;					
+  		}
+  	}	
+  }
+ // watchdog('Jesa: _block_jesa_list_manager', t(' liste manager : @val', array('@val' =>  print_r($return) ,)), NULL , WATCHDOG_DEBUG);
+  return $return;
 }
