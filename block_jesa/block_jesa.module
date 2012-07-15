@@ -41,8 +41,7 @@ function block_jesa_block_configure($delta = '') {
   // In this example, we'll allow the administrator to customize
   // the text of the 'configurable text string' block defined in this module.
 
-  variable_del('block_jesa_contact_adulte');
-  variable_del('block_jesa_contact_jeune');  
+
 
   $form = array();
   if ($delta == 'renseignements') {
@@ -66,14 +65,14 @@ function block_jesa_block_configure($delta = '') {
     $form['block_jesa_contact_adulte_uid'] = array(
       '#type'          => 'select',
       '#title'         => t('Adult event') . ' - ' . t('contact manager'),
-      '#options'       => _block_jesa_list_manager('adultes'),
+      '#options'       => _block_jesa_enum_manager('adultes'),
       '#description'   => t('Contact manager user ID'),
       '#default_value' => variable_get('block_jesa_contact_adulte_uid',  ''),
     );      
     $form['block_jesa_contact_jeune_uid'] = array(
       '#type'          => 'select',
       '#title'         => t('Youth event') . ' - ' . t('contact manager'),
-      '#options'       => _block_jesa_list_manager('jeunes'),
+      '#options'       => _block_jesa_enum_manager('jeunes'),
       '#description'   => t('Contact manager user ID'),
       '#default_value' => variable_get('block_jesa_contact_jeune_uid',  ''),
     );      
@@ -234,7 +233,7 @@ function block_jesa_contents($which_block) {
 * @return an array containing the username (value) and the uid (key) of
 * each manager
 */
-function _block_jesa_list_manager($type) {
+function _block_jesa_enum_manager($type) {
   //Recherche des gestionaires de stages 
   $return = array();
   // Type public : 9 pour les stages adultes, 10 pour les stages jeunes

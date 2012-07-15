@@ -58,6 +58,10 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   $pdf->SetFont('helvetica', '', 12);
   $pdf->Ln(10);
   
+  $txt = 'Inscription au stage d\'astronomie se déroulant à Modave du ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value']) . ' au ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value2']);
+  $txt .= ' et dont le prix s\'élève à ' . $stage->field_stage_prix[LANGUAGE_NONE][0]['value'] . ' €, à payer sur le compte BE50 6528 2472 6418 (code bic HBKABE22) au plus tard deux semaines avant le début du stage.' . "\n";
+  $pdf->Write($h=0, $txt, $link='', $fill=0, $align='L', $ln=true, $stretch=0, $firstline=false, $firstblock=false, $maxh=0);
+  $pdf->Ln(3);
   
   $txt = 'Nom : ' . $stagiaire->field_nom[LANGUAGE_NONE][0]['value'] . "\n";
   $txt .= "\n";
@@ -109,10 +113,7 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   $pdf->MultiCell(95, 5, $txt, 0, 'L', 1, 1, '', '', true);
   $pdf->Ln(4);
   
-  $txt = 'Stage d\'astronomie  se déroulant à Modave du ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value']) . ' au ' . _jesa_inscription_format_date($stage->field_stage_dates[LANGUAGE_NONE][0]['value2']);
-  $txt .= ' et dont le prix s\'élève à ' . $stage->field_stage_prix[LANGUAGE_NONE][0]['value'] . ' €, à payer sur le compte BE50 6528 2472 6418 (code bic HBKABE22) au plus tard deux semaines avant le début du stage.' . "\n";
-  $txt .= "\n";
-  $txt .= 'Viendras-tu par les transports en commun ? ' . ($train ? 'oui' : 'non') . "\n";
+  $txt = 'Viendras-tu par les transports en commun ? ' . ($train ? 'oui' : 'non') . "\n";
   $txt .= "\n";
   
   $txt .= <<<EOD
@@ -120,14 +121,21 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   
   Signature du stagiaire : .......................................
   
-  
   À remplir si le (la) candidat(e) est mineur(e)
   
   Le soussigné, exerçant la puissance parentale sur le (la) mineur(e) d'âge désigné ci dessus,
+EOD;
+  $pdf->Write($h=0, $txt, $link='', $fill=0, $align='L', $ln=true, $stretch=0, $firstline=false, $firstblock=false, $maxh=0);
   
-    - l'autorise à participer au stage indiqué ;
-    - déclare savoir que la responsabilité du cadre ne s'exerce que pendant le stage dont la durée est définie dans ce document, à l'exclusion notamment des trajets aller et retour ;
-    - affirme de bonne foi que le (la) candidat(e) est dans un état de santé tel qu'il (elle) ne peut compromettre celle des autres participants.         
+  
+  $txt = '<ul>';
+  $txt .= '<li>l\'autorise à participer au stage indiqué;</li>';
+  $txt .= '<li>déclare savoir que la responsabilité du cadre ne s\'exerce que pendant le stage dont la durée est définie dans ce document, à l\'exclusion notamment des trajets aller et retour;</li>';
+  $txt .= '<li>affirme de bonne foi que le (la) candidat(e) est dans un état de santé tel qu\'il (elle) ne peut compromettre celle des autres participants.</li>';
+  $txt .= '</ul>';
+// output the HTML content
+$pdf->writeHTML($txt, true, false, true, false, '');            
+  $txt = <<<EOD
   
   (écrire à la main " Lu et approuvé ")
   
@@ -139,6 +147,20 @@ function _jesa_inscription_generate_inscription_file($node_stagiaire) {
   Nom du signataire (o père o mère o tuteur) : ...........................
 EOD;
   $pdf->Write($h=0, $txt, $link='', $fill=0, $align='L', $ln=true, $stretch=0, $firstline=false, $firstblock=false, $maxh=0);
+  
+ 
+  $account = user_load(variable_get('block_jesa_contact_jeune_uid',  '')); 
+  if (is_object($account)) {
+    $pdf->Ln(4);
+    $pdf->SetFont('helvetica', 'I', 10);
+    $txt = 'Ce document (ainsi que l\'autorisation photographique) doit être envoyé à ' . "\n";
+    $txt .= '   ' . $account->field_prenom[LANGUAGE_NONE][0]['safe_value'] . ' ' . $account->field_nom[LANGUAGE_NONE][0]['safe_value'] . ', ' . "\n";
+    $txt .= '   ' . $account->field_adresse_1[LANGUAGE_NONE][0]['safe_value'] . ' ' . "\n";
+    $txt .= '   ' . $account->field_adresse_2[LANGUAGE_NONE][0]['safe_value'] . '.' . "\n";
+    $txt .= 'Vous pouvez également les scanner et les envoyer par courriel à astronomie@jeunesse-et-science.be'
+    ;
+    $pdf->Write($h=0, $txt, $link='', $fill=0, $align='L', $ln=true, $stretch=0, $firstline=false, $firstblock=false, $maxh=0);
+  }
   
   _jesa_inscription_save_document($pdf, 'Inscription.' . $node_stagiaire->nid);
 }

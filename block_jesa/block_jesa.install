@@ -14,3 +14,23 @@ function block_jesa_uninstall() {
   variable_del('block_jesa_contact_adulte_uid');
   variable_del('block_jesa_contact_jeune_uid');    
 }
+
+/**
+* Replace variable contact by user ID
+*/
+function block_jesa_update_7100() {
+  variable_del('block_jesa_contact_adulte');
+  variable_del('block_jesa_contact_jeune');
+  $list = _block_jesa_enum_manager('adultes');
+  foreach ($list as $key => $value) {
+      $uid = $key;
+      break;
+  }
+  variable_set('block_jesa_contact_adulte_uid',  $uid);
+  $list = _block_jesa_enum_manager('jeunes');
+  foreach ($list as $key => $value) {
+      $uid = $key;
+      break;
+  }
+  variable_set('block_jesa_contact_jeune_uid',  $uid);   
+}
