@@ -258,7 +258,7 @@
     * @param date $date (optionel) date à partir de laquelle on recherche les stages. Si la date
     *   est vide, on utilise la date du jour plus une semaine.
     * 
-    * @return un tableau associatif (nodeid => array(titre, cible, debut, fin)) des stages trouvés
+    * @return un tableau associatif (nodeid => debut) des stages trouvés
     *   triés par date début.
     *   Un tableau vide si aucun stage n'est trouvé.
     * 
