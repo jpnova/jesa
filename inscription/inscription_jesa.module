@@ -481,7 +481,7 @@ function _inscription_jesa_set_incription ($stagiaire_uid, $stage_nid, $train, $
   */
 function _inscription_jesa_create_node_stagiaire($stagiaire, $stage_nid) {
   $stage = node_load($stage_nid);
-  if (_inscription_jesa_is_stagiaire($stagiaire, $stage_nid)) {
+  if (_inscription_jesa_is_inscrit($stagiaire, $stage_nid)) {
     // le participant est déjà inscrit à ce stage => on ne fait rien
     return t('@prenom @nom is already registred on the event @stage.',
       array(
@@ -556,7 +556,7 @@ function _inscription_jesa_create_node_stagiaire($stagiaire, $stage_nid) {
  * 
  *  @ingroup Helper
  */
-function _inscription_jesa_is_stagiaire($stagiaire, $stage_nid) {
+function _inscription_jesa_is_inscrit($stagiaire, $stage_nid) {
   $query = '
     SELECT 
       n.nid AS nid

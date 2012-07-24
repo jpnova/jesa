@@ -60,16 +60,14 @@ function inscription_jesa_list() {
     );
   $rows = array();
   try {
-    foreach (_inscription_jesa_get_enfants() as $participant) {
+    global $user;
+    $parent = new Parentelle(array('uid' => $user->uid));
+    foreach ($parent->enfants as $enfant) {
       $row = array();
-      $account = user_load($participant->enfant_uid);
-      if (empty($account)) {
-        // Le lien existe encore alors que le stagiaire à été supprimé
-        node_delete($participant->nid);
-      } else {
-         
-        $row[] = l($account->field_prenom[LANGUAGE_NONE][0]['value'] . ' ' . $account->field_nom[LANGUAGE_NONE][0]['value'], 'inscriptions/jeunes/'. $account->uid . '/edit');
-        $prochain_stage = _inscription_jesa_prochain_stage($account->uid);
+      $participant = $enfant['Stagiaire'];
+      
+      $row[] = l($participant->fullname, 'inscriptions/jeunes/'. $participant->uid . '/edit');
+        $prochain_stage = _inscription_jesa_prochain_stage($participant->uid);
         if (empty($prochain_stage)) {
           $row[] = _inscription_jesa_include_class(t('none'), 'jesa_inscription');
           $statut = '';
@@ -98,17 +96,17 @@ function inscription_jesa_list() {
         }
         $row[]   = _inscription_jesa_include_class($statut, 'jesa_inscription');
         $links   = array();
-        $stagiaire['uid'] = $account->uid;
+        $stagiaire['uid'] = $participant->uid;
         $stages = _inscription_jesa_get_next_free_stages($stagiaire);
         if (!empty($stages)) {
           // On ne permet d'aller vers l'inscription que si le stagiaire n'est pas
           //  inscrits aux stages suivants
-          $links[] = l(t('Register'), 'inscriptions/jeunes/gestion/'. $account->uid . 
+          $links[] = l(t('Register'), 'inscriptions/jeunes/gestion/'. $participant->uid . 
             '/add', array('query' => drupal_get_destination(),));
         }
         $row[]   = _inscription_jesa_include_class(implode('&nbsp;|&nbsp;', $links), 'jesa_inscription');
         $rows[]  = $row;
-      }
+      
     }
   }
   catch (ErrorException $e) {
@@ -215,67 +213,6 @@ function _inscription_jesa_prochain_stage($uid) {
   }
 
   return $result;
-}
-
-/**
-* Renvoie la liste des participants liés à l'utilisateur courant
-*
-*/
-function _inscription_jesa_get_enfants() {
-  global $user;
-  $query = '
-    SELECT
-      p.field_lien_parent_uid AS parent_uid,
-      e.field_lien_enfant_uid AS enfant_uid,
-      t.field_lien_type_value AS type_lien,
-      p.entity_id             AS nid
-    FROM
-          field_data_field_lien_parent p
-      JOIN field_data_field_lien_enfant e
-        ON    e.entity_type = p.entity_type
-          AND e.bundle      = p.bundle
-          AND e.revision_id = p.revision_id
-          AND e.delta       = p.delta
-          AND e.deleted     = 0
-          AND e.entity_id   = p.entity_id
-      JOIN field_data_field_lien_type t
-       ON     t.entity_type = p.entity_type
-          AND t.bundle      = p.bundle
-          AND t.delta       = p.delta
-          AND t.revision_id = p.revision_id
-          AND t.deleted     = 0
-          AND t.entity_id   = p.entity_id
-            WHERE
-        p.entity_type = :entity_type
-    AND p.bundle      = :bundle
-    AND p.deleted     = :deleted
-    AND p.language    = :language
-    AND p.delta       = :delta
-    AND p.field_lien_parent_uid   = :uid
-  ';
-
-	try {
-    $results = db_query(
-      $query,
-      array(
-        ':entity_type' => 'node',
-        ':bundle'      => 'parent_stagiaire',
-        ':deleted'     => 0,              
-        ':language'    => LANGUAGE_NONE,  
-        ':delta'       => 0,              
-        ':uid'         => $user->uid,     
-      ),
-      array('throw_exception' => TRUE,));
-  }
-  catch(PDOException $e) {
-    watchdog_exception('jesa inscription', $e, 'DB error of %type: !message in %function (line %line of %file).', array(), WATCHDOG_ALERT, NULL);
-    throw new ErrorException(
-      t('Error during database access.'),
-      0,
-      E_USER_NOTICE
-    );
-  }
-  return $results->fetchAll();
 }
 
 /**
@@ -402,7 +339,7 @@ function inscription_jesa_register_submit($form, &$form_state) {
 function _inscription_jesa_get_next_free_stages($stagiaire) {
   $stages = _inscription_jesa_get_next_stages(2);
   foreach ($stages as $stage_nid => $title) {
-    if (_inscription_jesa_is_stagiaire($stagiaire, $stage_nid)) {
+    if (_inscription_jesa_is_inscrit($stagiaire, $stage_nid)) {
       //Le stagiaire est déjà inscrit au stage => on retire le stage de la liste
       unset($stages[$stage_nid]);
     }
