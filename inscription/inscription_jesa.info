@@ -2,11 +2,9 @@ name = Registration
 description = Events registration.
 package = Jesa
 core = 7.x
+version = 7.x-1.x-dev
 files[] = inscription_jesa.module
 files[] = inscription_jesa_doc.inc
-
-; Information added by drupal.org packaging script on 2011-06-02
-version = "7.x-1.x-dev"
-core = "7.x"
-project = "jesa"
-datestamp = "1306974049"
+files[] = inscription_jesa_list.inc
+files[] = jesa_pdf.php
+files[] = jesa_obj.inc

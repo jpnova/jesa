@@ -2,5 +2,6 @@ name = Informations
 description = Display the links to informations, subscritpions and contact for the future events.
 package = Jesa
 core = 7.x
+version = "7.x-1.x-dev"
 dependencies[] = block
 files[] = block_jesa.module
