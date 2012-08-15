@@ -337,7 +337,7 @@ function inscription_jesa_register_submit($form, &$form_state) {
  *
  */
 function _inscription_jesa_get_next_free_stages($stagiaire) {
-  $stages = _inscription_jesa_get_next_stages(2);
+  $stages = _inscription_jesa_get_next_stages(2, 7);
   foreach ($stages as $stage_nid => $title) {
     if (_inscription_jesa_is_inscrit($stagiaire, $stage_nid)) {
       //Le stagiaire est déjà inscrit au stage => on retire le stage de la liste
