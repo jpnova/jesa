@@ -608,11 +608,13 @@ function _inscription_jesa_is_stagiaire($stagiaire, $stage_nid) {
  *
  * @param $num_stages (optionel)nombre de stages à retourner dans la liste. Par
  * défaut a la valeur 1.
+ *       $num_days (optionel) nombre de jours de décalage dans le futur
+ * pour chercher la date du stage. Par défaut à la valeur 7.
  * 
  * @return un tableau associatif (nodeid => date du stage) des stages trouvés.
  *   Un tableau vide si aucun stage n'est trouvé.
  */
- function _inscription_jesa_get_next_stages($num_stages=1) {
+ function _inscription_jesa_get_next_stages($num_stages=1, $num_days = 7) {
 
   $query = "
     SELECT
@@ -631,7 +633,7 @@ function _inscription_jesa_is_stagiaire($stagiaire, $stage_nid) {
     WHERE 
           n.status                   = :published
       AND n.type                     = :stage_bundle
-      AND st.field_stage_dates_value > DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 7 DAY),:format_date)
+      AND st.field_stage_dates_value > DATE_FORMAT(DATE_ADD(NOW(), INTERVAL :num_days DAY),:format_date)
       AND p.field_stage_public_tid   = :public     
     ORDER BY 
       stagedate ASC
@@ -649,6 +651,7 @@ function _inscription_jesa_is_stagiaire($stagiaire, $stage_nid) {
         ':format_date'      => '%Y-%m-%dT00:00:00',
         ':format_display'   => '%Y-%m-%d',
         ':public'           => '10',                  // 10 : stage jeunes
+        ':num_days'         => $num_days,
       ),
       array('throw_exception' => TRUE,));
   }

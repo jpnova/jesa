@@ -531,9 +531,11 @@ function inscription_jesa_direct($form, &$form_state) {
     '#collapsible' => TRUE,
     '#collapsed'   => FALSE,
   );
+  //on permet au gestionaire de stage d'inscrire un stagiaire juqu'à 10 jours après
+  // le début du stage.
  $form['stage']['list'] = array(
     '#type'    => 'radios',
-    '#options' => _inscription_jesa_get_next_stages(4),
+    '#options' => _inscription_jesa_get_next_stages(4, -10),
     '#title'   => t('Events'),
   );
   $selection = array(
